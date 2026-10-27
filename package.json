@@ -1,0 +1,25 @@
+{
+  "name": "hotelpro",
+  "version": "1.0.0",
+  "description": "HotelPro - Modern Enterprise Hotel Management System & Luxury Booking Solution (MERN Stack)",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "client": "npm --prefix client run dev",
+    "client:build": "npm --prefix client run build",
+    "server": "node server/index.js",
+    "server:test": "node server/tests/api.test.js",
+    "start": "node server/index.js",
+    "test": "node server/tests/api.test.js"
+  },
+  "keywords": [
+    "hotel-management",
+    "mern",
+    "react",
+    "express",
+    "mongodb",
+    "hotel-booking"
+  ],
+  "author": "HotelPro",
+  "license": "ISC"
+}

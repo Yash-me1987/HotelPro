@@ -1,0 +1,231 @@
+/* HotelPro Custom App Styles */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1 0 auto;
+}
+
+/* Luxury Header & Navigation */
+.navbar-luxury {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  transition: all var(--transition-normal);
+  width: 100%;
+}
+
+.nav-link-custom {
+  color: var(--text-main);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.nav-link-custom:hover, .nav-link-custom.active {
+  color: var(--yellow-200);
+  background: rgba(254, 240, 138, 0.12);
+}
+
+/* Quick Role Bar */
+.role-bar {
+  background: linear-gradient(90deg, #131b10 0%, #1c2616 50%, #26341f 100%);
+  color: #fefce8;
+  font-size: 0.8rem;
+  padding: 0.45rem clamp(1rem, 3vw, 2.5rem);
+  border-bottom: 1px solid rgba(254, 240, 138, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.role-pill {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.role-pill.active {
+  background: var(--yellow-200);
+  color: #1a2412;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(254, 240, 138, 0.35);
+}
+
+.role-pill:not(.active) {
+  background: rgba(254, 240, 138, 0.08);
+  color: #abb89e;
+  border-color: rgba(254, 240, 138, 0.15);
+}
+
+.role-pill:not(.active):hover {
+  background: rgba(254, 240, 138, 0.18);
+  color: #fefce8;
+}
+
+/* Luxury Hero Section - Expansive Full Screen */
+.hero-luxury {
+  position: relative;
+  min-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  padding: 4.5rem clamp(1rem, 3vw, 4rem);
+  width: 100%;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(18, 24, 14, 0.75) 0%, rgba(18, 24, 14, 0.92) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 1440px;
+  width: 100%;
+  text-align: center;
+  color: #ffffff;
+}
+
+/* Luxury Search Widget - Expansive Across Viewport */
+.search-widget {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: 2rem clamp(1rem, 2vw, 2.5rem);
+  margin-top: 2.5rem;
+  width: 100%;
+  max-width: 1350px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Modern Tab Navigation */
+.tabs-luxury {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-fast);
+}
+
+.tab-btn.active {
+  color: var(--gold-600);
+  background: var(--gold-50);
+}
+
+.tab-btn:hover:not(.active) {
+  color: var(--text-main);
+  background: var(--bg-secondary);
+}
+
+/* Room Status Grid */
+.room-grid-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1rem;
+}
+
+.room-cell {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem 0.75rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+
+.room-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Responsive Table */
+.table-luxury-wrapper {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.table-luxury {
+  width: 100%;
+  margin-bottom: 0;
+  color: var(--text-main);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-luxury th {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.table-luxury td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.925rem;
+  vertical-align: middle;
+}
+
+.table-luxury tbody tr:hover {
+  background: var(--bg-secondary);
+}
+
+/* Modal and Drawer */
+.drawer-content {
+  background: var(--bg-surface);
+  height: 100%;
+  padding: 1.5rem;
+}
+
