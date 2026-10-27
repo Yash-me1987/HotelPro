@@ -1,469 +1,619 @@
-// Initial Mock Data for HotelPro
+// Authentic Indian Luxury Hospitality Dataset - Lumière Palaces & Resorts, India
 
 export const initialRooms = [
   {
-    id: "room-101",
-    roomNumber: "101",
-    name: "Deluxe Panoramic King",
-    category: "Deluxe",
-    basePrice: 260,
-    price: 260,
-    rating: 4.8,
-    reviewsCount: 42,
-    capacity: 2,
-    bedType: "1 California King Bed",
-    sizeSqFt: 450,
-    floor: 1,
-    status: "Clean", // Clean, Dirty, Inspected, Out of Order
-    isAvailable: true,
-    images: [
-      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80"
-    ],
-    description: "Immerse yourself in understated luxury. Floor-to-ceiling soundproof windows frame captivating garden views, complemented by an Italian marble en-suite bathroom with a rainfall shower.",
-    amenities: [
-      "High-Speed Wi-Fi 6",
-      "55\" 4K Smart OLED TV",
-      "Nespresso Coffee Machine",
-      "Italian Marble Bathroom",
-      "Rainfall Shower",
-      "Stocked Gourmet Mini-Bar",
-      "24/7 Room Service",
-      "Plush Bathrobes & Slippers",
-      "Keyless Mobile Entry"
-    ],
-    seasonalDiscount: 0,
-    features: ["Balcony", "Garden View", "Work Desk", "Soundproofing"]
-  },
-  {
-    id: "room-202",
-    roomNumber: "202",
-    name: "Royal Oceanfront Suite",
-    category: "Ocean View",
-    basePrice: 520,
-    price: 520,
-    rating: 4.95,
-    reviewsCount: 88,
+    id: "SU-402",
+    roomNumber: "SU-402",
+    name: "The Royal Lake Palace Suite",
+    title: "The Royal Lake Palace Suite",
+    type: "Presidential Suite",
+    category: "Presidential",
+    destination: "Udaipur, Rajasthan",
+    location: "Lake Pichola, Udaipur",
+    price: 24500,
+    priceFormatted: "₹ 24,500",
+    basePrice: 24500,
+    size: "1,650 sq ft",
+    sizeSqFt: 1650,
     capacity: 3,
-    bedType: "1 Grand King + 1 Chaise Lounge",
-    sizeSqFt: 780,
-    floor: 2,
-    status: "Inspected",
+    floor: "3rd Floor",
+    bed: "Handcrafted Royal Teak King Bed",
+    bedType: "Handcrafted Royal Teak King Bed",
+    status: "Clean",
     isAvailable: true,
-    images: [
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=1200&q=80"
-    ],
-    description: "Perched majestically overlooking the azure horizon, this suite features an expansive teak terrace, bespoke mid-century furnishings, a freestanding soaking tub, and VIP club lounge privileges.",
+    rating: 4.98,
+    reviewsCount: 1420,
+    reviewCount: 1420,
+    description: "Suspended serenely over the calm waters of Lake Pichola with unbroken views of the Aravali mountains, this royal palace suite features handcrafted Mewari jharokha balconies, pure white Makrana marble baths, and dedicated round-the-clock Khansama butler service.",
     amenities: [
-      "Panoramic Ocean View",
-      "Private Sun Terrace",
-      "Freestanding Soaking Tub",
-      "VIP Club Lounge Access",
-      "Complimentary Champagne on Arrival",
-      "Bose Surround Sound System",
-      "High-Speed Wi-Fi 6",
-      "Walk-in Dressing Room",
-      "Butler On Demand"
+      "Mewari Marble Jharokha Balcony",
+      "Private Heated Jacuzzi with Lake Views",
+      "24/7 Royal Khansama & Butler Service",
+      "Ayurvedic Spa & Aromatherapy Bath Menu",
+      "Chilled Champagne & Kesar Pista Welcome",
+      "Sunset Shikara Boat Ride with High Tea",
+      "High-Speed Wi-Fi 6 & Bang & Olufsen Audio"
     ],
-    seasonalDiscount: 0,
-    features: ["Ocean View", "Private Terrace", "Bathtub", "VIP Lounge Access"]
+    images: [
+      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80"
+    ]
   },
   {
-    id: "room-303",
-    roomNumber: "303",
-    name: "Executive Diplomatic Suite",
-    category: "Executive Suite",
-    basePrice: 380,
-    price: 380,
-    rating: 4.88,
-    reviewsCount: 56,
+    id: "MR-305",
+    roomNumber: "MR-305",
+    name: "The Mountain Retreat & Cedar Spa",
+    title: "The Mountain Retreat & Cedar Spa",
+    type: "Executive Suite",
+    category: "Executive",
+    destination: "Manali, Himachal Pradesh",
+    location: "Solang Valley, Manali",
+    price: 12999,
+    priceFormatted: "₹ 12,999",
+    basePrice: 12999,
+    size: "980 sq ft",
+    sizeSqFt: 980,
     capacity: 2,
-    bedType: "1 King Bed",
-    sizeSqFt: 620,
-    floor: 3,
-    status: "Dirty",
+    floor: "4th Floor",
+    bed: "Plush Himalayan Cedar King Bed",
+    bedType: "Plush Himalayan Cedar King Bed",
+    status: "Clean",
     isAvailable: true,
+    rating: 4.88,
+    reviewsCount: 980,
+    reviewCount: 980,
+    description: "Framed by snow-dusted pine forests and dramatic Himalayan peaks, this glasshouse sanctuary features a roaring brass fireplace, private heated cedar soak tub, and organic herbal tea apothecary.",
+    amenities: [
+      "Floor-to-Ceiling Himalayan Glasshouse",
+      "Wood-Burning Fireplace & Pine Logs",
+      "Heated Cedarwood Outdoor Tub",
+      "Organic Kangra Tea & Barista Station",
+      "Heated Floor Bathrooms & Pashmina Robes",
+      "Private Mountain Guide & Trekking Concierge"
+    ],
     images: [
       "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1200&q=80"
-    ],
-    description: "Designed for discerning executives, pairing contemporary luxury with seamless functionality. Features an ergonomic meeting space, separate parlor, and sound-insulated conference facilities.",
-    amenities: [
-      "Separate Living Room & Office",
-      "High-Speed Fiber Ethernet & Wi-Fi",
-      "Complimentary Daily Pressing (2 Items)",
-      "Wireless Printing Hub",
-      "Nespresso Creatista Station",
-      "Soundproof Meeting Pod",
-      "Molton Brown Toiletries",
-      "Curated Evening Turndown Service"
-    ],
-    seasonalDiscount: 0,
-    features: ["City Skyline View", "Executive Lounge", "Workstation", "Meeting Area"]
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
+    ]
   },
   {
-    id: "room-401",
-    roomNumber: "401",
-    name: "Presidential Penthouse Suite",
-    category: "Presidential",
-    basePrice: 850,
-    price: 850,
-    rating: 5.0,
-    reviewsCount: 34,
+    id: "PH-101",
+    roomNumber: "PH-101",
+    name: "Presidential Sky Villa & Penthouse",
+    title: "Presidential Sky Villa & Penthouse",
+    type: "Penthouse",
+    category: "Penthouse",
+    destination: "Marine Drive, Mumbai",
+    location: "Nariman Point, Mumbai",
+    price: 34999,
+    priceFormatted: "₹ 34,999",
+    basePrice: 34999,
+    size: "2,200 sq ft",
+    sizeSqFt: 2200,
     capacity: 4,
-    bedType: "2 Master King Suites",
-    sizeSqFt: 1450,
-    floor: 4,
+    floor: "24th Floor",
+    bed: "California Emperor King Bed",
+    bedType: "California Emperor King Bed",
     status: "Clean",
     isAvailable: true,
-    images: [
-      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80"
-    ],
-    description: "The pinnacle of elite hospitality. Spanning the entire top floor, featuring a private infinity plunge pool, full chef's galley, private elevator access, and 24-hour dedicated royal butler service.",
+    rating: 4.99,
+    reviewsCount: 1850,
+    reviewCount: 1850,
+    description: "Perched high above Mumbai's iconic Queen's Necklace, this sky villa commands 360-degree Arabian Sea panoramic vistas, an infinity plunge pool cantilevered over the bay, and private elevator security.",
     amenities: [
-      "Private Heated Plunge Pool",
-      "Dedicated 24/7 Royal Butler",
-      "Private Keycard Elevator Access",
-      "Full Designer Chef's Kitchen",
-      "Steinway Grand Piano",
-      "Dyson Supersonic Care Kits",
-      "Hermès Paris Bath Amenities",
-      "Private Rooftop Helipad Transfer"
+      "Cantilevered Heated Infinity Plunge Pool",
+      "Unbroken Arabian Sea Queen's Necklace View",
+      "Dedicated 24/7 Butler & Sommelier",
+      "Private Elevator & Valet Lobby",
+      "Sub-Zero Wine Cellar & Single Malt Bar",
+      "B&O High-Fidelity Acoustic System",
+      "Mercedes-Benz S-Class Airport Chauffeur"
     ],
-    seasonalDiscount: 0,
-    features: ["Private Plunge Pool", "Penthouse Level", "Chef Kitchen", "Butler Service"]
+    images: [
+      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"
+    ]
   },
   {
-    id: "room-105",
-    roomNumber: "105",
-    name: "Garden Luxury Villa",
-    category: "Family Villa",
-    basePrice: 650,
-    price: 650,
-    rating: 4.92,
-    reviewsCount: 61,
-    capacity: 6,
-    bedType: "2 King Beds + 2 Twin Beds",
-    sizeSqFt: 1200,
-    floor: 1,
+    id: "GV-204",
+    roomNumber: "GV-204",
+    name: "Coconut Grove Oceanfront Private Villa",
+    title: "Coconut Grove Oceanfront Private Villa",
+    type: "Deluxe Room",
+    category: "Deluxe",
+    destination: "Candolim, North Goa",
+    location: "Candolim Beachfront, Goa",
+    price: 18500,
+    priceFormatted: "₹ 18,500",
+    basePrice: 18500,
+    size: "1,450 sq ft",
+    sizeSqFt: 1450,
+    capacity: 3,
+    floor: "Ground Floor Beachfront",
+    bed: "Handwoven Goan Teak Four-Poster Bed",
+    bedType: "Handwoven Goan Teak Four-Poster Bed",
     status: "Clean",
     isAvailable: true,
+    rating: 4.92,
+    reviewsCount: 1120,
+    reviewCount: 1120,
+    description: "Step straight from your private teak deck onto soft golden sands. Surrounded by swaying coconut groves with an open-air rain shower, private infinity pool, and fresh coastal seafood dining.",
+    amenities: [
+      "Direct Private Beach Access",
+      "Private Tropical Garden Infinity Pool",
+      "Outdoor Open-Sky Rain Spa Shower",
+      "Daily Sunset Cocktails & Feni Tastings",
+      "Surfing & Catamaran Sailing Excursions",
+      "High-Speed Wi-Fi 6 & Bluetooth Cabana Audio"
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80"
+    ]
+  },
+  {
+    id: "DLX-108",
+    roomNumber: "DLX-108",
+    name: "Amber Fort Heritage Courtyard Haven",
+    title: "Amber Fort Heritage Courtyard Haven",
+    type: "Deluxe Room",
+    category: "Deluxe",
+    destination: "Jaipur, Rajasthan",
+    location: "Civil Lines, Jaipur",
+    price: 9499,
+    priceFormatted: "₹ 9,499",
+    basePrice: 9499,
+    size: "680 sq ft",
+    sizeSqFt: 680,
+    capacity: 2,
+    floor: "1st Floor",
+    bed: "Plush Silk Embroidered Queen Bed",
+    bedType: "Plush Silk Embroidered Queen Bed",
+    status: "Clean",
+    isAvailable: true,
+    rating: 4.87,
+    reviewsCount: 760,
+    reviewCount: 760,
+    description: "Centuries of royal Rajasthani heritage meet modern tranquility. Overlooking a sunlit bougainvillea fountain courtyard with blue pottery accents, traditional brass lanterns, and organic Ayurvedic amenities.",
+    amenities: [
+      "Private Fountain Courtyard Patio",
+      "Handcrafted Jaipur Blue Pottery Decor",
+      "Authentic Rajasthani Thali Dining",
+      "Evening Live Sitar & Sarangi Music",
+      "Heritage City Bazaar Concierge"
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80"
+    ]
+  },
+  {
+    id: "EK-102",
+    roomNumber: "EK-102",
+    name: "Malabar Spice Estate Forest Villa",
+    title: "Malabar Spice Estate Forest Villa",
+    type: "Executive Suite",
+    category: "Executive",
+    destination: "Wayanad, Kerala",
+    location: "Vythiri Hills, Kerala",
+    price: 14200,
+    priceFormatted: "₹ 14,200",
+    basePrice: 14200,
+    size: "1,100 sq ft",
+    sizeSqFt: 1100,
+    capacity: 2,
+    floor: "Forest Canopy Level",
+    bed: "Teakwood Floating King Bed",
+    bedType: "Teakwood Floating King Bed",
+    status: "Clean",
+    isAvailable: true,
+    rating: 4.95,
+    reviewsCount: 890,
+    reviewCount: 890,
+    description: "Nestled high in the misty Western Ghats amidst cardamon, cinnamon, and pepper plantations. Enjoy open-air Ayurvedic therapeutic baths, birdsong mornings, and traditional Kerala Sadya dining.",
+    amenities: [
+      "Canopy Tree-Deck Overlooking Misty Valleys",
+      "Copper Ayurvedic Soak Tub & Herb Baths",
+      "Guided Spice Plantation Walking Tours",
+      "Traditional Kerala Sadya Culinary Experience",
+      "High-Speed Fiber Connectivity"
+    ],
     images: [
       "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80",
       "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&w=1200&q=80"
-    ],
-    description: "A private sanctuary surrounded by lush tropical flora. Boasting an open-air pavilion, dining terrace for eight, private lawn, and direct secluded access to the wellness lagoon.",
-    amenities: [
-      "Private Enclosed Tropical Garden",
-      "Outdoor Dining Pavilion",
-      "Family Entertainment Console",
-      "Direct Lagoon Path",
-      "Kitchenette with Wine Cellar",
-      "Child-Friendly Amenities & Cots",
-      "Dual En-Suite Bathrooms",
-      "BBQ Facility on Request"
-    ],
-    seasonalDiscount: 0,
-    features: ["Private Garden", "Family Sized", "Kitchenette", "Lagoon Access"]
+    ]
+  }
+];
+
+export const popularDestinations = [
+  {
+    id: "dest-1",
+    name: "Udaipur",
+    state: "Rajasthan, India",
+    tagline: "City of Lakes & Palaces",
+    image: "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=600&q=80",
+    staysCount: "28 Luxury Palaces"
   },
   {
-    id: "room-204",
-    roomNumber: "204",
-    name: "Azure Bay Junior Suite",
-    category: "Ocean View",
-    basePrice: 340,
-    price: 340,
-    rating: 4.79,
-    reviewsCount: 49,
-    capacity: 2,
-    bedType: "1 Queen Bed",
-    sizeSqFt: 510,
-    floor: 2,
-    status: "Out of Order",
-    isAvailable: false,
-    images: [
-      "https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80",
-      "https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80"
-    ],
-    description: "A serene coastal escape with gentle sea breezes and sunset vistas. Complete with acoustic sound insulation, plush organic linens, and an oversized rain shower.",
-    amenities: [
-      "Ocean Sunset Balcony",
-      "Organic Bamboo Linens",
-      "Artisan Tea Selection",
-      "Smart Climate Touch Panel",
-      "Acoustic Soundproofing",
-      "Rainfall Shower & Spa Jets"
-    ],
-    seasonalDiscount: 0,
-    features: ["Ocean Sunset", "Private Balcony", "Spa Shower"]
+    id: "dest-2",
+    name: "Manali",
+    state: "Himachal Pradesh, India",
+    tagline: "Snow Peaks & Cedar Woods",
+    image: "https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=600&q=80",
+    staysCount: "16 Mountain Lodges"
+  },
+  {
+    id: "dest-3",
+    name: "Mumbai",
+    state: "Maharashtra, India",
+    tagline: "Queen's Necklace & City Lights",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80",
+    staysCount: "34 Executive Suites"
+  },
+  {
+    id: "dest-4",
+    name: "Goa",
+    state: "North & South Goa, India",
+    tagline: "Golden Sands & Susegad",
+    image: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80",
+    staysCount: "42 Beachfront Villas"
+  },
+  {
+    id: "dest-5",
+    name: "Jaipur",
+    state: "Rajasthan, India",
+    tagline: "Pink City Forts & Havelis",
+    image: "https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=600&q=80",
+    staysCount: "22 Royal Havelis"
+  },
+  {
+    id: "dest-6",
+    name: "Wayanad",
+    state: "Kerala, India",
+    tagline: "Misty Spices & Rainforests",
+    image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=600&q=80",
+    staysCount: "19 Forest Sanctuaries"
   }
 ];
 
 export const initialBookings = [
   {
-    id: "BK-8021",
-    roomId: "room-202",
-    roomName: "Royal Oceanfront Suite",
-    roomNumber: "202",
-    guestId: "user-1",
-    guestName: "Lord Johnathan Vance",
-    guestEmail: "john.vance@luxurytravel.com",
-    guestPhone: "+1 (555) 349-2810",
-    checkIn: "2026-10-28",
-    checkOut: "2026-11-02",
-    nights: 5,
-    guests: 2,
-    totalAmount: 2600,
-    paymentStatus: "Paid", // Paid, Pending, Refunded
-    paymentMethod: "Stripe (Visa ending 4242)",
-    bookingStatus: "Confirmed", // Confirmed, Checked-In, Checked-Out, Cancelled
-    specialRequests: "Late check-in at 8:00 PM. Extra hypoallergenic goose feather pillows requested.",
-    addOns: [
-      { name: "Airport VIP Chauffeur", price: 120 },
-      { name: "Bottle of Dom Pérignon 2012", price: 280 }
-    ],
-    createdAt: "2026-10-20T10:30:00Z"
-  },
-  {
-    id: "BK-8022",
-    roomId: "room-101",
-    roomName: "Deluxe Panoramic King",
-    roomNumber: "101",
-    guestId: "user-2",
-    guestName: "Elena Rostova",
-    guestEmail: "elena.rostova@artgallery.eu",
-    guestPhone: "+44 20 7946 0912",
-    checkIn: "2026-10-27",
-    checkOut: "2026-10-30",
+    id: "BK-8921",
+    bookingReference: "BK-8921",
+    guestName: "Aisha Sharma",
+    guestEmail: "aisha.sharma@luxuryindia.com",
+    guestPhone: "+91 98201 44521",
+    roomNumber: "SU-402",
+    roomTitle: "The Royal Lake Palace Suite",
+    location: "Lake Pichola, Udaipur",
+    checkInDate: "2026-10-28",
+    checkOutDate: "2026-10-31",
     nights: 3,
-    guests: 2,
-    totalAmount: 780,
+    guestsCount: 2,
+    totalAmount: 73500,
+    totalAmountFormatted: "₹ 73,500",
     paymentStatus: "Paid",
-    paymentMethod: "Razorpay (Mastercard 8812)",
-    bookingStatus: "Checked-In",
-    specialRequests: "Anniversary celebration - rose petals arrangement.",
-    addOns: [{ name: "Daily Champagne Breakfast for Two", price: 90 }],
-    createdAt: "2026-10-18T14:15:00Z"
-  },
-  {
-    id: "BK-8023",
-    roomId: "room-401",
-    roomName: "Presidential Penthouse Suite",
-    roomNumber: "401",
-    guestId: "user-3",
-    guestName: "Marcus Sterling",
-    guestEmail: "marcus@sterlingcapital.com",
-    guestPhone: "+1 (555) 890-4411",
-    checkIn: "2026-11-05",
-    checkOut: "2026-11-10",
-    nights: 5,
-    guests: 3,
-    totalAmount: 4250,
-    paymentStatus: "Paid",
-    paymentMethod: "Stripe (Amex 1004)",
+    paymentMethod: "Razorpay / UPI (HDFC Bank)",
     bookingStatus: "Confirmed",
-    specialRequests: "Private chef service requested for Nov 7 evening.",
-    addOns: [{ name: "Dedicated Private Chef Evening", price: 500 }],
-    createdAt: "2026-10-25T09:00:00Z"
+    specialRequests: "Kesar Pista welcome kulfi upon arrival and evening boat high tea.",
+    digitalKeyIssued: true
   },
   {
-    id: "BK-8019",
-    roomId: "room-303",
-    roomName: "Executive Diplomatic Suite",
-    roomNumber: "303",
-    guestId: "user-1",
-    guestName: "Lord Johnathan Vance",
-    guestEmail: "john.vance@luxurytravel.com",
-    guestPhone: "+1 (555) 349-2810",
-    checkIn: "2026-09-12",
-    checkOut: "2026-09-15",
+    id: "BK-7840",
+    bookingReference: "BK-7840",
+    guestName: "Rohan Mehra",
+    guestEmail: "rohan.mehra@techcorp.in",
+    guestPhone: "+91 98112 99841",
+    roomNumber: "MR-305",
+    roomTitle: "The Mountain Retreat & Cedar Spa",
+    location: "Solang Valley, Manali",
+    checkInDate: "2026-10-26",
+    checkOutDate: "2026-10-29",
     nights: 3,
-    guests: 1,
-    totalAmount: 1140,
+    guestsCount: 2,
+    totalAmount: 38997,
+    totalAmountFormatted: "₹ 38,997",
     paymentStatus: "Paid",
-    paymentMethod: "Stripe (Visa 4242)",
-    bookingStatus: "Checked-Out",
-    specialRequests: "Quiet room high floor.",
-    addOns: [],
-    createdAt: "2026-09-01T12:00:00Z"
-  }
-];
-
-export const initialStaff = [
-  {
-    id: "staff-1",
-    name: "Sarah Jenkins",
-    role: "Front Desk & Operations Manager",
-    department: "Front Office",
-    shift: "Morning (07:00 - 15:30)",
-    email: "sarah.j@hotelpro.luxury",
-    phone: "+1 (555) 123-4567",
-    status: "Active",
-    rating: 4.95,
-    assignedTasks: 4
+    paymentMethod: "Stripe Credit Card (ending 4242)",
+    bookingStatus: "Checked-In",
+    specialRequests: "Pine wood fireplace lit before 7:00 PM every evening.",
+    digitalKeyIssued: true
   },
   {
-    id: "staff-2",
-    name: "Mateo Rodriguez",
-    role: "Head of Housekeeping",
-    department: "Housekeeping",
-    shift: "Day (08:30 - 17:00)",
-    email: "mateo.r@hotelpro.luxury",
-    phone: "+1 (555) 234-5678",
-    status: "Active",
-    rating: 4.88,
-    assignedTasks: 8
-  },
-  {
-    id: "staff-3",
-    name: "David Chen",
-    role: "Chief Engineer & Maintenance",
-    department: "Facilities",
-    shift: "Evening (14:00 - 22:30)",
-    email: "david.c@hotelpro.luxury",
-    phone: "+1 (555) 345-6789",
-    status: "Active",
-    rating: 4.9,
-    assignedTasks: 2
-  },
-  {
-    id: "staff-4",
-    name: "Claire Dupont",
-    role: "Head Concierge (Les Clefs d'Or)",
-    department: "Guest Relations",
-    shift: "Morning (08:00 - 16:30)",
-    email: "claire.d@hotelpro.luxury",
-    phone: "+1 (555) 456-7890",
-    status: "Active",
-    rating: 5.0,
-    assignedTasks: 3
+    id: "BK-6210",
+    bookingReference: "BK-6210",
+    guestName: "Vikramaditya Singhania",
+    guestEmail: "vikramaditya@singhania.com",
+    guestPhone: "+91 98334 00192",
+    roomNumber: "PH-101",
+    roomTitle: "Presidential Sky Villa & Penthouse",
+    location: "Marine Drive, Mumbai",
+    checkInDate: "2026-11-05",
+    checkOutDate: "2026-11-09",
+    nights: 4,
+    guestsCount: 3,
+    totalAmount: 139996,
+    totalAmountFormatted: "₹ 1,39,996",
+    paymentStatus: "Paid",
+    paymentMethod: "Net Banking (ICICI Corporate)",
+    bookingStatus: "Confirmed",
+    specialRequests: "Mercedes S-Class airport pickup from Mumbai T2 Terminal.",
+    digitalKeyIssued: true
   }
 ];
 
 export const initialServices = [
   {
-    id: "srv-301",
-    roomNumber: "101",
-    guestName: "Elena Rostova",
-    type: "Room Service",
-    title: "Gourmet Dinner & Vintage Pinot Noir",
-    details: "Pan-seared Atlantic salmon with truffle risotto, plus 1 bottle Domaine Serene 2018.",
-    timeRequested: "19:15",
-    priority: "High",
-    status: "In Progress", // Pending, In Progress, Completed
-    assignedTo: "Sarah Jenkins"
-  },
-  {
-    id: "srv-302",
-    roomNumber: "303",
-    guestName: "Housekeeping Schedule",
-    type: "Housekeeping",
-    title: "Deep Sanitization & Turndown Linen Change",
-    details: "Room 303 requires complete changeover and minibar restocking.",
-    timeRequested: "11:00",
-    priority: "Medium",
-    status: "Pending",
-    assignedTo: "Mateo Rodriguez"
-  },
-  {
-    id: "srv-303",
-    roomNumber: "204",
-    guestName: "Facilities Dispatch",
-    type: "Maintenance",
-    title: "Balcony Sliding Glass Acoustic Seal Adjustment",
-    details: "Track alignment inspection before releasing to inventory.",
-    timeRequested: "14:30",
+    id: "srv-01",
+    guestName: "Aisha Sharma",
+    roomNumber: "SU-402",
+    serviceType: "Room Service",
+    details: "Royal Rajasthani Thali for two & chilled Champagne at 8:30 PM",
     priority: "High",
     status: "In Progress",
-    assignedTo: "David Chen"
+    assignedTo: "Chef Sanjeev Rawat"
   },
   {
-    id: "srv-304",
-    roomNumber: "202",
-    guestName: "Lord Johnathan Vance",
-    type: "Concierge",
-    title: "Private Helicopter Tour Booking for 2",
-    details: "Sunset scenic tour over Riviera coastline scheduled for Friday 17:30.",
-    timeRequested: "16:45",
+    id: "srv-02",
+    guestName: "Rohan Mehra",
+    roomNumber: "MR-305",
+    serviceType: "Housekeeping",
+    details: "Fresh organic Egyptian cotton linen & pine fire replenishment",
     priority: "Normal",
+    status: "Pending",
+    assignedTo: "Sunita Deshmukh"
+  },
+  {
+    id: "srv-03",
+    guestName: "Vikramaditya Singhania",
+    roomNumber: "PH-101",
+    serviceType: "Concierge",
+    details: "Chauffeur booking for private meeting at Nariman Point",
+    priority: "Urgent",
     status: "Completed",
-    assignedTo: "Claire Dupont"
+    assignedTo: "Rajesh Verma"
+  }
+];
+
+export const staffRoster = [
+  {
+    id: "st-1",
+    name: "Rajesh Verma",
+    role: "Front Desk & Chief Concierge",
+    shift: "Morning (07:00 - 15:30)",
+    status: "On Duty",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "st-2",
+    name: "Sunita Deshmukh",
+    role: "Head of Housekeeping",
+    shift: "General (09:00 - 18:00)",
+    status: "On Duty",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "st-3",
+    name: "Chef Sanjeev Rawat",
+    role: "Executive Khansama & Master Chef",
+    shift: "Evening (14:00 - 23:00)",
+    status: "On Duty",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "st-4",
+    name: "Arjun Menon",
+    role: "Ayurvedic Wellness Director",
+    shift: "Morning (08:00 - 16:30)",
+    status: "Off Duty",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
+  }
+];
+
+export const initialStaff = [
+  {
+    id: "st-1",
+    name: "Rajesh Verma",
+    role: "Front Desk & Chief Concierge",
+    department: "Front Office",
+    shift: "Morning (07:00 - 15:30)",
+    status: "Active",
+    rating: 4.95,
+    assignedTasks: 4,
+    phone: "+91 98201 11223",
+    email: "rajesh.v@lumierepalaces.in",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "st-2",
+    name: "Sunita Deshmukh",
+    role: "Head of Housekeeping",
+    department: "Housekeeping",
+    shift: "General (09:00 - 18:00)",
+    status: "Active",
+    rating: 4.98,
+    assignedTasks: 6,
+    phone: "+91 98201 44556",
+    email: "sunita.d@lumierepalaces.in",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "st-3",
+    name: "Chef Sanjeev Rawat",
+    role: "Executive Khansama & Master Chef",
+    department: "Food & Beverage",
+    shift: "Evening (14:00 - 23:00)",
+    status: "Active",
+    rating: 5.0,
+    assignedTasks: 3,
+    phone: "+91 98201 77889",
+    email: "sanjeev.r@lumierepalaces.in",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+  },
+  {
+    id: "st-4",
+    name: "Arjun Menon",
+    role: "Ayurvedic Wellness Director",
+    department: "Wellness & Spa",
+    shift: "Morning (08:00 - 16:30)",
+    status: "Active",
+    rating: 4.92,
+    assignedTasks: 2,
+    phone: "+91 98201 99001",
+    email: "arjun.m@lumierepalaces.in",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
+  }
+];
+
+export const initialUsers = [
+  {
+    id: "usr-guest-01",
+    name: "Aisha Sharma",
+    email: "aisha.sharma@luxurytravel.in",
+    role: "guest",
+    membershipTier: "Royal Platinum",
+    status: "Active",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    loyaltyPoints: 12450,
+    staysCount: 7
+  },
+  {
+    id: "usr-guest-02",
+    name: "Rohan Mehra",
+    email: "rohan.mehra@techcorp.in",
+    role: "guest",
+    membershipTier: "Gold Elite",
+    status: "Active",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    loyaltyPoints: 6800,
+    staysCount: 4
+  },
+  {
+    id: "usr-guest-03",
+    name: "Vikramaditya Singhania",
+    email: "vikramaditya@singhania.com",
+    role: "guest",
+    membershipTier: "Crown Heritage",
+    status: "Active",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    loyaltyPoints: 34200,
+    staysCount: 15
+  },
+  {
+    id: "usr-staff-01",
+    name: "Rajesh Verma",
+    email: "staff@lumierepalaces.in",
+    role: "staff",
+    department: "Front Office & Concierge",
+    status: "Active",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    shift: "Morning"
+  },
+  {
+    id: "usr-staff-02",
+    name: "Sunita Deshmukh",
+    email: "sunita@lumierepalaces.in",
+    role: "staff",
+    department: "Housekeeping",
+    status: "Active",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80",
+    shift: "General"
+  },
+  {
+    id: "usr-admin-01",
+    name: "General Manager Vikram Rao",
+    email: "admin@lumierepalaces.in",
+    role: "admin",
+    department: "Executive Management",
+    status: "Active",
+    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80",
+    title: "Managing Director & General Manager"
   }
 ];
 
 export const initialNotifications = [
   {
-    id: "notif-1",
-    title: "VIP Arrival Expected Today",
-    message: "Lord Johnathan Vance has checked into the Royal Oceanfront Suite (#202).",
+    id: "notif-01",
+    title: "Lake Palace Suite Reserved",
+    message: "Aisha Sharma booked SU-402 (Udaipur Lake Palace) for ₹ 73,500.",
     time: "10 mins ago",
-    type: "booking",
-    read: false
+    read: false,
+    type: "booking"
   },
   {
-    id: "notif-2",
-    title: "Service Request Updated",
-    message: "Gourmet dinner order for Room #101 is now In Progress by Kitchen brigade.",
+    id: "notif-02",
+    title: "Royal Khansama Request",
+    message: "Chef Sanjeev Rawat assigned to prepare Royal Rajasthani Thali for Room SU-402.",
     time: "25 mins ago",
-    type: "service",
-    read: false
+    read: false,
+    type: "service"
   },
   {
-    id: "notif-3",
-    title: "System Audit Alert",
-    message: "High-demand weekend pricing rules automatically activated for November.",
+    id: "notif-03",
+    title: "GST Invoice Folio Generated",
+    message: "Tax invoice with 18% Luxury GST generated for booking BK-9042.",
     time: "1 hour ago",
-    type: "system",
-    read: true
+    read: true,
+    type: "billing"
   },
   {
-    id: "notif-4",
-    title: "Payment Received",
-    message: "Stripe processed $4,250.00 for Presidential Penthouse Suite (BK-8023).",
-    time: "3 hours ago",
-    type: "payment",
-    read: true
+    id: "notif-04",
+    title: "Airport Chauffeur Dispatched",
+    message: "Mercedes S-Class dispatched to Mumbai T2 Terminal for Guest Vikramaditya Singhania.",
+    time: "2 hours ago",
+    read: true,
+    type: "concierge"
   }
 ];
 
 export const initialAuditLogs = [
-  { id: "log-1", timestamp: "2026-10-27 00:45:12", user: "Alexander Wright (Admin)", action: "Updated Seasonal Pricing", details: "Applied +15% surge multiplier for Thanksgiving week." },
-  { id: "log-2", timestamp: "2026-10-26 22:14:05", user: "Sarah Jenkins (Staff)", action: "Guest Check-In", details: "Completed check-in for Elena Rostova into Room 101." },
-  { id: "log-3", timestamp: "2026-10-26 19:30:22", user: "System Payment Gateway", action: "Stripe Webhook Verified", details: "Transaction ref_ch_99218201 confirmed $2,600.00." },
-  { id: "log-4", timestamp: "2026-10-26 16:02:40", user: "Mateo Rodriguez (Staff)", action: "Room Status Changed", details: "Room 101 updated from Dirty to Clean." },
-  { id: "log-5", timestamp: "2026-10-26 11:20:18", user: "Security Watchdog", action: "Successful Admin Login", details: "Session started from verified corporate IP 192.168.1.104." }
-];
-
-export const initialUsers = [
-  { id: "user-1", name: "Lord Johnathan Vance", email: "john.vance@luxurytravel.com", role: "guest", status: "Active", joined: "2025-04-12", bookingsCount: 6 },
-  { id: "user-2", name: "Elena Rostova", email: "elena.rostova@artgallery.eu", role: "guest", status: "Active", joined: "2025-08-19", bookingsCount: 2 },
-  { id: "user-3", name: "Marcus Sterling", email: "marcus@sterlingcapital.com", role: "guest", status: "Active", joined: "2026-01-05", bookingsCount: 4 },
-  { id: "staff-1", name: "Sarah Jenkins", email: "sarah.j@hotelpro.luxury", role: "staff", status: "Active", joined: "2024-02-10", department: "Front Office" },
-  { id: "staff-2", name: "Mateo Rodriguez", email: "mateo.r@hotelpro.luxury", role: "staff", status: "Active", joined: "2024-06-15", department: "Housekeeping" },
-  { id: "admin-1", name: "Alexander Wright", email: "alexander.wright@hotelpro.luxury", role: "admin", status: "Active", joined: "2023-01-01", department: "Executive Board" }
+  {
+    id: "log-1",
+    timestamp: "2026-10-27 19:45:10",
+    user: "GM Vikram Rao",
+    action: "Rate Multiplier Updated",
+    details: "Autumn Prestige yield multiplier set to 1.00x across all Indian suites",
+    category: "Yield Management"
+  },
+  {
+    id: "log-2",
+    timestamp: "2026-10-27 18:30:22",
+    user: "Rajesh Verma",
+    action: "Guest Check-In Completed",
+    details: "Issued digital NFC keycard for SU-402 (Aisha Sharma)",
+    category: "Front Desk"
+  },
+  {
+    id: "log-3",
+    timestamp: "2026-10-27 17:15:00",
+    user: "Sunita Deshmukh",
+    action: "Room Status Changed",
+    details: "Marked MR-305 (Solang Valley, Manali) as Clean & Inspected",
+    category: "Housekeeping"
+  },
+  {
+    id: "log-4",
+    timestamp: "2026-10-27 16:02:44",
+    user: "System",
+    action: "Indian GST Invoice Folio Issued",
+    details: "Folio #LUM-2026-9042 generated with SAC 996311 (CGST 9% + SGST 9%)",
+    category: "Finance"
+  }
 ];
 
 export const initialHotelConfig = {
-  hotelName: "HotelPro Grand Palace & Resort",
-  brandSubtitle: "The Benchmark of Contemporary Elegance",
-  address: "740 Royal Ocean Boulevard, Côte d'Azur & Monaco Coast",
-  phone: "+1 (800) 888-PRO-LUX",
-  email: "concierge@hotelpro.luxury",
-  currency: "USD ($)",
-  taxRatePercent: 12,
-  resortFeePerNight: 35,
-  checkInTime: "15:00",
-  checkOutTime: "11:00",
-  cancellationFreeHours: 48,
-  seasonalPricingMultiplier: 1.0,
-  seasonalCampaignName: "Standard Autumn Elegance",
-  maintenanceMode: false
+  hotelName: "Lumière Grand Palaces & Resorts · India",
+  gstNumber: "27AAACL1987K1Z9",
+  taxRatePercent: 18, // 18% Luxury GST slab in India
+  resortFeePerNight: 1500, // ₹ 1,500 Heritage Conservation & Wellness Fee
+  currency: "INR (₹)",
+  currencySymbol: "₹",
+  maintenanceMode: false,
+  contactPhone: "+91 22 4988 7000",
+  contactEmail: "concierge@lumierepalaces.in",
+  address: "Marine Drive, Nariman Point, Mumbai, Maharashtra 400021, India"
 };

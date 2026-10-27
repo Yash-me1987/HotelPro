@@ -20,7 +20,9 @@ import {
   Crown,
   Printer,
   ChevronRight,
-  Tag
+  Tag,
+  QrCode,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -31,17 +33,18 @@ export const BookingCheckoutPage = () => {
   const { currentUser } = useSelector((state) => state.auth);
   const rooms = useSelector((state) => state.rooms.rooms);
 
-  // Fallback room if accessed directly
   const room = currentFlow.room || rooms[0];
 
   const [step, setStep] = useState(1);
-  const [guestName, setGuestName] = useState(currentUser?.name || 'Lord Johnathan Vance');
-  const [guestEmail, setGuestEmail] = useState(currentUser?.email || 'john.vance@luxurytravel.com');
-  const [guestPhone, setGuestPhone] = useState('+1 (555) 349-2810');
-  const [specialRequests, setSpecialRequests] = useState('Late check-in requested (approx 7:30 PM). Extra feather pillows.');
+  const [guestName, setGuestName] = useState(currentUser?.name || 'Aisha Sharma');
+  const [guestEmail, setGuestEmail] = useState(currentUser?.email || 'aisha.sharma@luxuryindia.com');
+  const [guestPhone, setGuestPhone] = useState('+91 98201 44521');
+  const [guestCity, setGuestCity] = useState('Mumbai, Maharashtra');
+  const [specialRequests, setSpecialRequests] = useState('Late check-in requested (approx 7:30 PM). Traditional evening high tea on arrival.');
 
   // Payment states
-  const [paymentProvider, setPaymentProvider] = useState('Stripe'); // 'Stripe' | 'Razorpay'
+  const [paymentProvider, setPaymentProvider] = useState('Razorpay'); // 'Razorpay' | 'UPI' | 'Card' | 'Stripe'
+  const [upiId, setUpiId] = useState('aisha.sharma@okhdfcbank');
   const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
   const [cardHolder, setCardHolder] = useState(guestName);
   const [expiry, setExpiry] = useState('08/29');
@@ -53,21 +56,26 @@ export const BookingCheckoutPage = () => {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   const nights = currentFlow.nights || 2;
-  const baseRate = room.price * nights;
+  const roomPrice = room.price || room.basePrice || 18500;
+  const baseRate = roomPrice * nights;
   const addOnsTotal = (currentFlow.addOns || []).reduce((acc, a) => acc + a.price, 0);
-  const taxes = Math.round((baseRate + addOnsTotal) * 0.12);
-  const resortFee = nights * 35;
+  const taxes = Math.round((baseRate + addOnsTotal) * 0.18); // 18% Luxury GST
+  const resortFee = nights * 1500; // Heritage Conservation Fee
   const subtotal = baseRate + addOnsTotal + taxes + resortFee;
   const discountAmount = Math.round(subtotal * (discountPercent / 100));
   const finalTotal = subtotal - discountAmount;
 
   const handleApplyPromo = (e) => {
     e.preventDefault();
-    if (promoCode.trim().toUpperCase() === 'VIP10' || promoCode.trim().toUpperCase() === 'HOTELPRO') {
+    if (
+      promoCode.trim().toUpperCase() === 'NAMASTE10' ||
+      promoCode.trim().toUpperCase() === 'VIP10' ||
+      promoCode.trim().toUpperCase() === 'HOTELPRO'
+    ) {
       setDiscountPercent(10);
-      toast.success('VIP Promo Code applied! 10% discount granted.');
+      toast.success('Royal Privilege Code applied! 10% discount granted.');
     } else {
-      toast.error('Invalid promo code. Try "VIP10" for a 10% privilege discount.');
+      toast.error('Invalid code. Try "NAMASTE10" for a 10% privilege discount.');
     }
   };
 
@@ -80,493 +88,466 @@ export const BookingCheckoutPage = () => {
       const newBookingId = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
       const bookingData = {
         id: newBookingId,
+        bookingReference: newBookingId,
         roomId: room.id,
-        roomName: room.name,
+        roomName: room.title || room.name,
+        roomTitle: room.title || room.name,
         roomNumber: room.roomNumber,
         guestId: currentUser?.id || 'user-1',
         guestName,
         guestEmail,
         guestPhone,
-        checkIn: currentFlow.checkIn || new Date().toISOString().split('T')[0],
-        checkOut: currentFlow.checkOut || new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+        checkIn: currentFlow.checkIn || '2026-11-01',
+        checkOut: currentFlow.checkOut || '2026-11-04',
         nights,
         guests: currentFlow.guests || 2,
         totalAmount: finalTotal,
         paymentStatus: 'Paid',
-        paymentMethod: `${paymentProvider} (${cardNumber.slice(-4)})`,
+        paymentMethod: paymentProvider === 'UPI' ? `UPI (${upiId})` : `${paymentProvider} (ending ${cardNumber.slice(-4)})`,
         bookingStatus: 'Confirmed',
         specialRequests,
         addOns: currentFlow.addOns || [],
-        createdAt: new Date().toISOString()
+        digitalKeyIssued: true,
+        createdAt: new Date().toISOString(),
       };
 
       // Save to Redux
       dispatch(createBooking(bookingData));
       dispatch(
         addNotification({
-          title: `Booking Confirmed: ${newBookingId}`,
-          message: `Your reservation for ${room.name} has been confirmed. Confirmation email dispatched.`,
-          type: 'booking'
+          title: `Reservation Confirmed: ${newBookingId}`,
+          message: `Your royal stay for ${room.title || room.name} has been secured. Official GST receipt dispatched to ${guestEmail}.`,
+          category: 'booking',
         })
       );
       dispatch(
         addAuditLog({
-          user: `${guestName} (Guest)`,
+          user: `${guestName} (Resident)`,
           action: 'New Booking Created',
-          details: `Processed ${paymentProvider} reservation ${newBookingId} for $${finalTotal}.`
+          details: `Processed ${paymentProvider} reservation ${newBookingId} for ₹ ${finalTotal.toLocaleString('en-IN')}.`,
         })
       );
 
       setConfirmedBooking(bookingData);
       setStep(4); // Confirmation step
-      toast.success(`Booking ${newBookingId} confirmed! Welcome to HotelPro Grand Palace.`);
+      toast.success(`Booking ${newBookingId} confirmed! Welcome to Lumière Palaces.`);
     }, 1200);
   };
 
+  const displayTitle = room.title || room.name;
+  const displayLocation = room.destination || room.location || 'India';
+
   return (
-    <div className="booking-page py-5" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <div className="container py-2" style={{ maxWidth: '960px' }}>
-        {/* Step Indicator */}
-        <div className="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom">
-          {[
-            { num: 1, label: 'Stay Summary' },
-            { num: 2, label: 'Guest Details' },
-            { num: 3, label: 'Payment' },
-            { num: 4, label: 'Confirmation' }
-          ].map((item) => (
-            <div
-              key={item.num}
-              className={`d-flex align-items-center gap-2 ${
-                step >= item.num ? 'text-warning fw-bold' : 'text-muted'
+    <div style={{ backgroundColor: 'var(--bg-body)' }} className="py-5">
+      <div className="container py-2" style={{ maxWidth: '1180px' }}>
+        {/* Step Indicator Header */}
+        <div className="text-center mb-5">
+          <div className="eyebrow-kicker mb-2">ROYAL GUEST CHECKOUT</div>
+          <h1 className="display-6 font-serif fw-bold text-main mb-3">
+            Secure Your Palatial Stay
+          </h1>
+
+          {/* Stepper Wizard Pills */}
+          <div className="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+            <span
+              className={`badge rounded-pill px-3 py-2 ${
+                step >= 1 ? 'pill-btn-dark' : 'pill-btn-outline'
               }`}
+              style={{ fontSize: '0.78rem' }}
             >
-              <div
-                className={`rounded-circle d-flex align-items-center justify-content-center fw-bold ${
-                  step === item.num
-                    ? 'btn-gold text-white'
-                    : step > item.num
-                    ? 'bg-warning text-dark'
-                    : 'bg-secondary text-light'
-                }`}
-                style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}
-              >
-                {step > item.num ? <CheckCircle size={18} /> : item.num}
-              </div>
-              <span className="small d-none d-sm-inline">{item.label}</span>
-            </div>
-          ))}
+              1. Stay Itinerary
+            </span>
+            <ChevronRight size={14} className="text-muted" />
+            <span
+              className={`badge rounded-pill px-3 py-2 ${
+                step >= 2 ? 'pill-btn-dark' : 'pill-btn-outline'
+              }`}
+              style={{ fontSize: '0.78rem' }}
+            >
+              2. Resident Details
+            </span>
+            <ChevronRight size={14} className="text-muted" />
+            <span
+              className={`badge rounded-pill px-3 py-2 ${
+                step >= 3 ? 'pill-btn-dark' : 'pill-btn-outline'
+              }`}
+              style={{ fontSize: '0.78rem' }}
+            >
+              3. Payment & Settlement
+            </span>
+            <ChevronRight size={14} className="text-muted" />
+            <span
+              className={`badge rounded-pill px-3 py-2 ${
+                step === 4 ? 'pill-btn-dark' : 'pill-btn-outline'
+              }`}
+              style={{ fontSize: '0.78rem' }}
+            >
+              4. Confirmation & Folio
+            </span>
+          </div>
         </div>
 
-        {/* STEP 1: Stay & Room Confirmation */}
-        {step === 1 && (
-          <div className="row g-4">
-            <div className="col-md-7">
-              <div className="card-luxury p-4 h-100">
-                <h4 className="font-serif fw-bold mb-3 text-warning">Confirm Selected Suite</h4>
-                <div className="rounded overflow-hidden mb-3" style={{ height: '220px' }}>
-                  <img src={room.images[0]} alt={room.name} className="w-100 h-100 object-fit-cover" />
-                </div>
-                <h5 className="font-serif fw-bold mb-1">{room.name}</h5>
-                <p className="text-muted small mb-3">{room.description}</p>
-
-                <div className="row g-2 text-muted small p-3 rounded" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <div className="col-6"><strong>Suite Category:</strong> {room.category}</div>
-                  <div className="col-6"><strong>Room Number:</strong> #{room.roomNumber} (Floor {room.floor})</div>
-                  <div className="col-6"><strong>Bed Type:</strong> {room.bedType}</div>
-                  <div className="col-6"><strong>Room Dimensions:</strong> {room.sizeSqFt} sq ft</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-md-5">
-              <div className="card-luxury p-4">
-                <h5 className="font-serif fw-bold mb-3">Reservation Schedule</h5>
-                <div className="d-flex flex-column gap-3 mb-4">
-                  <div className="d-flex justify-content-between pb-2 border-bottom">
-                    <span className="text-muted small">Check-In:</span>
-                    <span className="fw-semibold small">{currentFlow.checkIn || '2026-10-28'} (from 15:00)</span>
-                  </div>
-                  <div className="d-flex justify-content-between pb-2 border-bottom">
-                    <span className="text-muted small">Check-Out:</span>
-                    <span className="fw-semibold small">{currentFlow.checkOut || '2026-10-31'} (until 11:00)</span>
-                  </div>
-                  <div className="d-flex justify-content-between pb-2 border-bottom">
-                    <span className="text-muted small">Duration:</span>
-                    <span className="fw-semibold small">{nights} Night(s)</span>
-                  </div>
-                  <div className="d-flex justify-content-between pb-2 border-bottom">
-                    <span className="text-muted small">Guests:</span>
-                    <span className="fw-semibold small">{currentFlow.guests || 2} Persons</span>
-                  </div>
-                </div>
-
-                <div className="p-3 rounded mb-4" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <div className="d-flex justify-content-between small text-muted mb-1">
-                    <span>Base Accommodations:</span>
-                    <span>${baseRate}</span>
-                  </div>
-                  {addOnsTotal > 0 && (
-                    <div className="d-flex justify-content-between small text-muted mb-1">
-                      <span>Add-ons:</span>
-                      <span>+${addOnsTotal}</span>
-                    </div>
-                  )}
-                  <div className="d-flex justify-content-between small text-muted mb-1">
-                    <span>Taxes & Resort Fee:</span>
-                    <span>+${taxes + resortFee}</span>
-                  </div>
-                  <div className="d-flex justify-content-between fw-bold pt-2 border-top">
-                    <span>Estimated Total:</span>
-                    <span className="text-warning">${finalTotal}</span>
-                  </div>
-                </div>
-
-                <button onClick={() => setStep(2)} className="btn btn-gold w-100 py-2">
-                  Continue to Guest Details <ArrowRight size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 2: Guest Details & Special Requests */}
-        {step === 2 && (
-          <div className="card-luxury p-4">
-            <h4 className="font-serif fw-bold mb-3 text-warning">Guest Credentials & Preferences</h4>
-            <div className="row g-3 mb-4">
-              <div className="col-md-6">
-                <label className="form-label small fw-semibold text-muted">Primary Guest Full Legal Name</label>
-                <div className="position-relative">
-                  <input
-                    type="text"
-                    className="input-luxury ps-5"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    required
-                  />
-                  <User size={18} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label small fw-semibold text-muted">VIP Email Confirmation Address</label>
-                <div className="position-relative">
-                  <input
-                    type="email"
-                    className="input-luxury ps-5"
-                    value={guestEmail}
-                    onChange={(e) => setGuestEmail(e.target.value)}
-                    required
-                  />
-                  <Mail size={18} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label small fw-semibold text-muted">Contact Phone Number</label>
-                <div className="position-relative">
-                  <input
-                    type="tel"
-                    className="input-luxury ps-5"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    required
-                  />
-                  <Phone size={18} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label small fw-semibold text-muted">Estimated Arrival Time</label>
-                <select className="input-luxury">
-                  <option>Standard Check-In (15:00 - 18:00)</option>
-                  <option>Early Check-In Request (12:00 - 14:00)</option>
-                  <option>Late Evening Arrival (19:00 - 23:00)</option>
-                  <option>Midnight Arrival (After 00:00)</option>
-                </select>
-              </div>
-
-              <div className="col-12">
-                <label className="form-label small fw-semibold text-muted">Special Requests / Dietary Needs / Celebrations</label>
-                <textarea
-                  className="input-luxury"
-                  rows={3}
-                  value={specialRequests}
-                  onChange={(e) => setSpecialRequests(e.target.value)}
-                  placeholder="e.g. Anniversary celebration, champagne on ice upon arrival, quiet high floor, down feather allergies..."
-                />
-              </div>
-            </div>
-
-            <div className="d-flex justify-content-between">
-              <button onClick={() => setStep(1)} className="btn btn-secondary-custom">
-                <ArrowLeft size={16} /> Back to Summary
-              </button>
-              <button
-                onClick={() => {
-                  if (!guestName || !guestEmail) {
-                    toast.error('Please provide guest name and email.');
-                    return;
-                  }
-                  setStep(3);
-                }}
-                className="btn btn-gold"
-              >
-                Proceed to Payment <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 3: Online Payment Portal */}
-        {step === 3 && (
-          <div className="row g-4">
-            <div className="col-md-7">
-              <div className="card-luxury p-4">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h4 className="font-serif fw-bold text-warning mb-0">Secure Payment Gateway</h4>
-                  <div className="d-flex align-items-center gap-1 text-success small">
-                    <ShieldCheck size={16} />
-                    <span>256-Bit SSL Encrypted</span>
-                  </div>
-                </div>
-
-                {/* Gateway Provider Selection */}
-                <div className="mb-4">
-                  <label className="form-label small text-muted fw-semibold">Select Payment Gateway</label>
-                  <div className="row g-2">
-                    <div className="col-6">
-                      <div
-                        onClick={() => setPaymentProvider('Stripe')}
-                        className={`p-3 rounded border text-center cursor-pointer transition-fast ${
-                          paymentProvider === 'Stripe' ? 'border-warning bg-warning-subtle' : ''
-                        }`}
-                        style={{ cursor: 'pointer', backgroundColor: paymentProvider === 'Stripe' ? 'var(--gold-50)' : 'var(--bg-secondary)' }}
-                      >
-                        <CreditCard size={20} className="mb-1 text-warning" />
-                        <div className="fw-bold small">Stripe Direct</div>
-                        <div className="text-muted" style={{ fontSize: '0.7rem' }}>Visa, MC, Amex, Apple Pay</div>
-                      </div>
-                    </div>
-                    <div className="col-6">
-                      <div
-                        onClick={() => setPaymentProvider('Razorpay')}
-                        className={`p-3 rounded border text-center cursor-pointer transition-fast ${
-                          paymentProvider === 'Razorpay' ? 'border-warning bg-warning-subtle' : ''
-                        }`}
-                        style={{ cursor: 'pointer', backgroundColor: paymentProvider === 'Razorpay' ? 'var(--gold-50)' : 'var(--bg-secondary)' }}
-                      >
-                        <ShieldCheck size={20} className="mb-1 text-info" />
-                        <div className="fw-bold small">Razorpay Global</div>
-                        <div className="text-muted" style={{ fontSize: '0.7rem' }}>UPI, Cards, NetBanking</div>
+        {step < 4 ? (
+          <div className="row g-5">
+            {/* Left Column: Multi-Step Interactive Form */}
+            <div className="col-lg-7">
+              {/* STEP 1: Itinerary Review */}
+              {step === 1 && (
+                <div className="luxury-card p-4">
+                  <h3 className="font-serif fw-bold fs-4 mb-3">1. Review Your Itinerary</h3>
+                  <div className="d-flex align-items-center gap-3 p-3 rounded-3 mb-4" style={{ backgroundColor: 'var(--bg-surface-subtle)' }}>
+                    <img
+                      src={room.images[0]}
+                      alt={displayTitle}
+                      className="rounded-3"
+                      style={{ width: '80px', height: '60px', objectFit: 'cover' }}
+                    />
+                    <div>
+                      <h4 className="font-serif fw-bold fs-6 m-0">{displayTitle}</h4>
+                      <div className="text-muted small">
+                        <MapPin size={12} className="inline me-1" style={{ color: 'var(--accent-gold)' }} />
+                        {displayLocation} &bull; Room #{room.roomNumber}
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Realistic Credit Card Visualizer */}
-                <div
-                  className="rounded-3 p-4 mb-4 text-white shadow-lg"
-                  style={{
-                    background: 'linear-gradient(135deg, #182315 0%, #283618 60%, #556b2f 100%)',
-                    border: '1.5px solid var(--yellow-200)',
-                    minHeight: '170px'
-                  }}
-                >
-                  <div className="d-flex justify-content-between align-items-center mb-4">
-                    <Crown size={24} className="text-warning" />
-                    <span className="small letter-spacing-1 fw-bold text-uppercase">{paymentProvider} Platinum</span>
-                  </div>
-                  <div className="fs-5 font-mono letter-spacing-2 mb-3">
-                    {cardNumber || '•••• •••• •••• ••••'}
-                  </div>
-                  <div className="d-flex justify-content-between align-items-end small">
-                    <div>
-                      <div className="opacity-75" style={{ fontSize: '0.65rem' }}>CARDHOLDER</div>
-                      <div className="fw-semibold">{cardHolder || 'GUEST NAME'}</div>
-                    </div>
-                    <div>
-                      <div className="opacity-75" style={{ fontSize: '0.65rem' }}>EXPIRES</div>
-                      <div className="fw-semibold">{expiry || 'MM/YY'}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handleCompletePayment}>
-                  <div className="mb-3">
-                    <label className="form-label small text-muted">Cardholder Name</label>
-                    <input
-                      type="text"
-                      className="input-luxury"
-                      value={cardHolder}
-                      onChange={(e) => setCardHolder(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label small text-muted">Card Number</label>
-                    <input
-                      type="text"
-                      className="input-luxury"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="row g-2 mb-4">
+                  <div className="row g-3 mb-4">
                     <div className="col-6">
-                      <label className="form-label small text-muted">Expiry Date</label>
+                      <label className="form-label small text-muted">Check-In Date</label>
+                      <div className="p-2 rounded-3 border fw-semibold text-main" style={{ backgroundColor: '#ffffff' }}>
+                        {currentFlow.checkIn || '2026-11-01'} (From 2:00 PM)
+                      </div>
+                    </div>
+                    <div className="col-6">
+                      <label className="form-label small text-muted">Check-Out Date</label>
+                      <div className="p-2 rounded-3 border fw-semibold text-main" style={{ backgroundColor: '#ffffff' }}>
+                        {currentFlow.checkOut || '2026-11-04'} (Until 12:00 PM)
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Promo Code Input */}
+                  <div className="mb-4">
+                    <label className="form-label small fw-semibold text-muted">Royal Privilege Voucher</label>
+                    <form onSubmit={handleApplyPromo} className="d-flex gap-2">
                       <input
                         type="text"
-                        className="input-luxury"
-                        placeholder="MM/YY"
-                        value={expiry}
-                        onChange={(e) => setExpiry(e.target.value)}
-                        required
+                        placeholder="Enter voucher (e.g. NAMASTE10)"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value)}
+                        className="form-control rounded-pill"
+                        style={{ borderColor: 'var(--border-subtle)', backgroundColor: 'var(--bg-surface-subtle)' }}
+                      />
+                      <button type="submit" className="pill-btn-dark py-2 px-4 flex-shrink-0">
+                        Apply
+                      </button>
+                    </form>
+                    <div className="text-muted small mt-1">
+                      Tip: Use voucher <strong style={{ color: 'var(--accent-gold)' }}>NAMASTE10</strong> for a 10% privilege discount.
+                    </div>
+                  </div>
+
+                  <div className="d-flex justify-content-end">
+                    <button onClick={() => setStep(2)} className="pill-btn-dark py-2 px-4">
+                      <span>Continue to Guest Details</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: Guest Details */}
+              {step === 2 && (
+                <div className="luxury-card p-4">
+                  <h3 className="font-serif fw-bold fs-4 mb-3">2. Resident Information</h3>
+                  <div className="row g-3 mb-4">
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-muted">Full Name (As on Government ID / Aadhaar / Passport)</label>
+                      <input
+                        type="text"
+                        className="form-control rounded-3"
+                        value={guestName}
+                        onChange={(e) => setGuestName(e.target.value)}
+                        style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
                       />
                     </div>
-                    <div className="col-6">
-                      <label className="form-label small text-muted">Security Code (CVC)</label>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-muted">Email Address (For Booking Folio)</label>
                       <input
-                        type="password"
-                        className="input-luxury"
-                        placeholder="CVC"
-                        value={cvc}
-                        onChange={(e) => setCvc(e.target.value)}
-                        required
+                        type="email"
+                        className="form-control rounded-3"
+                        value={guestEmail}
+                        onChange={(e) => setGuestEmail(e.target.value)}
+                        style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label small fw-semibold text-muted">Contact Phone (with Country Code)</label>
+                      <input
+                        type="tel"
+                        className="form-control rounded-3"
+                        value={guestPhone}
+                        onChange={(e) => setGuestPhone(e.target.value)}
+                        style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-muted">Residential City & State</label>
+                      <input
+                        type="text"
+                        className="form-control rounded-3"
+                        value={guestCity}
+                        onChange={(e) => setGuestCity(e.target.value)}
+                        style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                      />
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label small fw-semibold text-muted">Special Preferences / Dietary Requirements</label>
+                      <textarea
+                        rows={3}
+                        className="form-control rounded-3"
+                        value={specialRequests}
+                        onChange={(e) => setSpecialRequests(e.target.value)}
+                        style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
                       />
                     </div>
                   </div>
 
-                  <div className="d-flex justify-content-between align-items-center">
-                    <button type="button" onClick={() => setStep(2)} className="btn btn-secondary-custom">
+                  <div className="d-flex justify-content-between">
+                    <button onClick={() => setStep(1)} className="pill-btn-outline py-2 px-3">
                       <ArrowLeft size={16} /> Back
                     </button>
-                    <button type="submit" className="btn btn-gold px-4 py-2" disabled={isProcessing}>
-                      {isProcessing ? 'Authorizing Payment...' : `Authorize & Pay $${finalTotal}`}
+                    <button onClick={() => setStep(3)} className="pill-btn-dark py-2 px-4">
+                      <span>Proceed to Payment</span>
+                      <ArrowRight size={16} />
                     </button>
                   </div>
-                </form>
-              </div>
+                </div>
+              )}
+
+              {/* STEP 3: Payment */}
+              {step === 3 && (
+                <div className="luxury-card p-4">
+                  <h3 className="font-serif fw-bold fs-4 mb-3">3. Payment & Settlement</h3>
+
+                  {/* Payment Method Selector */}
+                  <div className="d-flex gap-2 mb-4 flex-wrap">
+                    {['Razorpay', 'UPI', 'Card', 'Stripe'].map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPaymentProvider(method)}
+                        style={{
+                          backgroundColor: paymentProvider === method ? 'var(--btn-dark)' : 'var(--bg-surface-subtle)',
+                          color: paymentProvider === method ? '#ffffff' : 'var(--text-main)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: '9999px',
+                          padding: '8px 20px',
+                          fontSize: '0.84rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {method === 'UPI' ? 'UPI / QR Code' : method === 'Razorpay' ? 'Razorpay / Net Banking' : method === 'Card' ? 'Credit / Debit Card' : 'Stripe Global'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {paymentProvider === 'UPI' ? (
+                    <div className="p-4 rounded-3 text-center mb-4 border" style={{ backgroundColor: 'var(--bg-surface-subtle)' }}>
+                      <QrCode size={48} style={{ color: 'var(--accent-gold)' }} className="mb-2" />
+                      <h4 className="font-serif fw-bold fs-6 mb-1">Scan & Pay via any UPI App</h4>
+                      <p className="text-muted small mb-3">Google Pay, PhonePe, Paytm, or BHIM UPI</p>
+                      <input
+                        type="text"
+                        className="form-control rounded-pill text-center mb-2 mx-auto"
+                        style={{ maxWidth: '300px' }}
+                        value={upiId}
+                        onChange={(e) => setUpiId(e.target.value)}
+                        placeholder="Enter your UPI VPA"
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-4">
+                      <div className="mb-3">
+                        <label className="form-label small fw-semibold text-muted">Card Number</label>
+                        <input
+                          type="text"
+                          className="form-control rounded-3"
+                          value={cardNumber}
+                          onChange={(e) => setCardNumber(e.target.value)}
+                          style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                        />
+                      </div>
+                      <div className="row g-3">
+                        <div className="col-6">
+                          <label className="form-label small fw-semibold text-muted">Cardholder Name</label>
+                          <input
+                            type="text"
+                            className="form-control rounded-3"
+                            value={cardHolder}
+                            onChange={(e) => setCardHolder(e.target.value)}
+                            style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                          />
+                        </div>
+                        <div className="col-3">
+                          <label className="form-label small fw-semibold text-muted">Expiry</label>
+                          <input
+                            type="text"
+                            className="form-control rounded-3"
+                            value={expiry}
+                            onChange={(e) => setExpiry(e.target.value)}
+                            style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                          />
+                        </div>
+                        <div className="col-3">
+                          <label className="form-label small fw-semibold text-muted">CVV</label>
+                          <input
+                            type="text"
+                            className="form-control rounded-3"
+                            value={cvc}
+                            onChange={(e) => setCvc(e.target.value)}
+                            style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="d-flex justify-content-between align-items-center">
+                    <button onClick={() => setStep(2)} className="pill-btn-outline py-2 px-3">
+                      <ArrowLeft size={16} /> Back
+                    </button>
+                    <button
+                      onClick={handleCompletePayment}
+                      disabled={isProcessing}
+                      className="pill-btn-dark py-3 px-4"
+                    >
+                      {isProcessing ? (
+                        <span>Processing Royal Settlement...</span>
+                      ) : (
+                        <>
+                          <span>Authorize ₹ {finalTotal.toLocaleString('en-IN')}</span>
+                          <Lock size={15} />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Price Summary & Promo Code */}
-            <div className="col-md-5">
-              <div className="card-luxury p-4">
-                <h5 className="font-serif fw-bold mb-3">Billing Summary</h5>
-
-                <div className="d-flex flex-column gap-2 mb-3 pb-3 border-bottom small text-muted">
-                  <div className="d-flex justify-content-between">
-                    <span>{room.name} ({nights} nights)</span>
-                    <span className="fw-semibold">${baseRate}</span>
+            {/* Right Column: Order Summary Folio */}
+            <div className="col-lg-5">
+              <div className="luxury-card p-4 position-sticky" style={{ top: '100px' }}>
+                <h4 className="font-serif fw-bold fs-5 mb-3">Settlement Summary</h4>
+                <div className="d-flex justify-content-between small text-secondary mb-2">
+                  <span>Palace Suite ({nights} nights)</span>
+                  <span>₹ {baseRate.toLocaleString('en-IN')}</span>
+                </div>
+                {addOnsTotal > 0 && (
+                  <div className="d-flex justify-content-between small text-secondary mb-2">
+                    <span>Royal Add-Ons</span>
+                    <span>₹ {addOnsTotal.toLocaleString('en-IN')}</span>
                   </div>
-                  {addOnsTotal > 0 && (
-                    <div className="d-flex justify-content-between">
-                      <span>Curated Add-ons</span>
-                      <span className="fw-semibold">+${addOnsTotal}</span>
-                    </div>
-                  )}
-                  <div className="d-flex justify-content-between">
-                    <span>Resort & Pool Privilege Fee</span>
-                    <span>+${resortFee}</span>
-                  </div>
-                  <div className="d-flex justify-content-between">
-                    <span>Government Tourism Tax (12%)</span>
-                    <span>+${taxes}</span>
-                  </div>
-                  {discountAmount > 0 && (
-                    <div className="d-flex justify-content-between text-success fw-bold">
-                      <span>VIP Privilege Discount (10%)</span>
-                      <span>-${discountAmount}</span>
-                    </div>
-                  )}
+                )}
+                <div className="d-flex justify-content-between small text-secondary mb-2">
+                  <span>18% Luxury GST Slab</span>
+                  <span>₹ {taxes.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="d-flex justify-content-between small text-secondary mb-2">
+                  <span>Heritage Conservation & Wellness Fee</span>
+                  <span>₹ {resortFee.toLocaleString('en-IN')}</span>
                 </div>
 
-                {/* Promo Code Input */}
-                <form onSubmit={handleApplyPromo} className="input-group mb-3">
-                  <input
-                    type="text"
-                    className="input-luxury rounded-start rounded-0"
-                    placeholder="Promo Code (Try VIP10)"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                  />
-                  <button type="submit" className="btn btn-secondary-custom rounded-end rounded-0">
-                    Apply
-                  </button>
-                </form>
+                {discountAmount > 0 && (
+                  <div className="d-flex justify-content-between small text-success mb-2 fw-semibold">
+                    <span>Royal Voucher Discount ({discountPercent}%)</span>
+                    <span>-₹ {discountAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
 
-                <div className="d-flex justify-content-between align-items-baseline mb-4 pt-2">
-                  <span className="fw-bold">Total Amount Due:</span>
-                  <span className="fs-3 font-serif fw-bold text-warning">${finalTotal}</span>
+                <div className="d-flex justify-content-between fw-bold border-top pt-3 fs-5 text-main mt-3">
+                  <span className="font-serif">Total Payable</span>
+                  <span className="font-serif" style={{ color: 'var(--accent-gold)' }}>
+                    ₹ {finalTotal.toLocaleString('en-IN')}
+                  </span>
                 </div>
 
-                <div className="p-3 rounded border text-muted small" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <ShieldCheck size={16} className="text-success mb-1" />
-                  <div>Guaranteed Instant Check-In &bull; Zero Booking Fees</div>
+                <div className="mt-4 pt-3 border-top text-muted small">
+                  <div className="d-flex align-items-center gap-2 mb-1">
+                    <ShieldCheck size={16} style={{ color: 'var(--accent-gold)' }} />
+                    <span>256-Bit Encrypted Indian Banking Security</span>
+                  </div>
+                  <div className="d-flex align-items-center gap-2">
+                    <CheckCircle size={16} className="text-success" />
+                    <span>100% Refundable Guarantee</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        )}
-
-        {/* STEP 4: Instant Confirmation & Invoice */}
-        {step === 4 && confirmedBooking && (
-          <div className="card-luxury p-5 text-center">
+        ) : (
+          /* STEP 4: Confirmation Screen */
+          <div className="luxury-card p-5 text-center my-4" style={{ maxWidth: '780px', margin: '0 auto' }}>
             <div
-              className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-              style={{
-                width: '72px',
-                height: '72px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: '#fff'
-              }}
+              className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+              style={{ width: '70px', height: '70px', backgroundColor: '#ecfdf5', color: '#059669' }}
             >
-              <CheckCircle size={40} />
+              <CheckCircle size={36} />
             </div>
-
-            <span className="badge bg-success-subtle text-success border border-success px-3 py-1 mb-2">
-              RESERVATION GUARANTEED & CONFIRMED
-            </span>
-            <h2 className="font-serif fw-bold mb-2">We Look Forward to Welcoming You</h2>
-            <p className="text-muted mx-auto mb-4" style={{ maxWidth: '580px' }}>
-              Your stay at HotelPro Grand Palace is secured under Booking Reference{' '}
-              <strong className="text-warning">{confirmedBooking.id}</strong>. A detailed folio and itinerary has been dispatched to <strong>{confirmedBooking.guestEmail}</strong>.
+            <div className="eyebrow-kicker mb-2">BOOKING CONFIRMED & SETTLED</div>
+            <h2 className="display-6 font-serif fw-bold text-main mb-2">
+              Namaste, {guestName}
+            </h2>
+            <p className="text-secondary mb-4" style={{ maxWidth: '520px', margin: '0 auto' }}>
+              Your royal reservation has been confirmed. Your official GST folio invoice and NFC Smart Key credentials have been emitted to <strong>{guestEmail}</strong>.
             </p>
 
-            <div className="p-4 rounded border mb-4 text-start mx-auto" style={{ maxWidth: '600px', backgroundColor: 'var(--bg-secondary)' }}>
-              <div className="row g-2 small">
-                <div className="col-sm-6"><strong>Suite:</strong> {confirmedBooking.roomName}</div>
-                <div className="col-sm-6"><strong>Room Number:</strong> #{confirmedBooking.roomNumber}</div>
-                <div className="col-sm-6"><strong>Check-In:</strong> {confirmedBooking.checkIn}</div>
-                <div className="col-sm-6"><strong>Check-Out:</strong> {confirmedBooking.checkOut}</div>
-                <div className="col-sm-6"><strong>Guest Name:</strong> {confirmedBooking.guestName}</div>
-                <div className="col-sm-6"><strong>Payment Status:</strong> Paid in Full (${confirmedBooking.totalAmount})</div>
+            <div className="p-4 rounded-3 mb-4 text-start" style={{ backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)' }}>
+              <div className="row g-3">
+                <div className="col-6">
+                  <span className="text-muted small">Reservation Code:</span>
+                  <div className="fw-bold font-serif fs-5 text-main">{confirmedBooking?.bookingReference}</div>
+                </div>
+                <div className="col-6 text-end">
+                  <span className="text-muted small">Total Paid:</span>
+                  <div className="fw-bold font-serif fs-5" style={{ color: 'var(--accent-gold)' }}>
+                    ₹ {confirmedBooking?.totalAmount?.toLocaleString('en-IN')}
+                  </div>
+                </div>
+                <div className="col-6">
+                  <span className="text-muted small">Suite:</span>
+                  <div className="fw-bold text-main">{confirmedBooking?.roomTitle}</div>
+                </div>
+                <div className="col-6 text-end">
+                  <span className="text-muted small">Stay Dates:</span>
+                  <div className="fw-bold text-main">{confirmedBooking?.checkIn} to {confirmedBooking?.checkOut}</div>
+                </div>
               </div>
             </div>
 
-            <div className="d-flex justify-content-center gap-3 flex-wrap">
-              <button onClick={() => setShowInvoiceModal(true)} className="btn btn-gold">
-                <Printer size={16} /> View & Print Tax Folio
+            <div className="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+              <Link to="/guest-dashboard" className="pill-btn-dark py-3 px-4">
+                Open Resident Dashboard & NFC Key
+              </Link>
+              <button
+                onClick={() => setShowInvoiceModal(true)}
+                className="pill-btn-outline py-3 px-4"
+              >
+                <Printer size={16} /> View Tax Invoice Folio
               </button>
-              <Link to="/guest-dashboard" className="btn btn-secondary-custom">
-                Open Guest Portal & Stays
-              </Link>
-              <Link to="/" className="btn btn-secondary-custom">
-                Back to Home
-              </Link>
             </div>
-
-            <InvoiceModal
-              isOpen={showInvoiceModal}
-              onClose={() => setShowInvoiceModal(false)}
-              booking={confirmedBooking}
-            />
           </div>
         )}
       </div>
+
+      {showInvoiceModal && confirmedBooking && (
+        <InvoiceModal
+          booking={confirmedBooking}
+          onClose={() => setShowInvoiceModal(false)}
+        />
+      )}
     </div>
   );
 };

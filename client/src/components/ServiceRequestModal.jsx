@@ -5,49 +5,70 @@ import { addNotification } from '../redux/slices/notificationsSlice';
 import { X, Utensils, Sparkles, Wrench, Compass, Send } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-export const ServiceRequestModal = ({ isOpen, onClose, roomNumber = '202', guestName = 'Lord Johnathan Vance' }) => {
+export const ServiceRequestModal = ({ isOpen = true, onClose, roomNumber = 'SU-402', guestName = 'Aisha Sharma' }) => {
   const dispatch = useDispatch();
   const [serviceType, setServiceType] = useState('Room Service');
-  const [title, setTitle] = useState('');
-  const [details, setDetails] = useState('');
-  const [priority, setPriority] = useState('Normal');
-
-  if (!isOpen) return null;
+  const [details, setDetails] = useState('Royal Mewari Thali for two and freshly brewed Kashmiri Kahwa at 8:30 PM.');
+  const [priority, setPriority] = useState('High');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title || !details) {
-      toast.error('Please specify the service request title and details.');
+    if (!details) {
+      toast.error('Please specify request details.');
       return;
     }
 
-    dispatch(addServiceRequest({
-      roomNumber,
-      guestName,
-      type: serviceType,
-      title,
-      details,
-      priority,
-      assignedTo: 'Dispatch Desk'
-    }));
+    dispatch(
+      addServiceRequest({
+        roomNumber,
+        guestName,
+        serviceType,
+        details,
+        priority,
+        assignedTo: serviceType === 'Room Service' ? 'Chef Sanjeev Rawat' : 'Rajesh Verma',
+      })
+    );
 
-    dispatch(addNotification({
-      title: `Service Request Placed: ${serviceType}`,
-      message: `${title} for Room #${roomNumber} has been submitted to front desk.`,
-      type: 'service'
-    }));
+    dispatch(
+      addNotification({
+        title: `Palace Service Request: ${serviceType}`,
+        message: `${serviceType} request for Suite #${roomNumber} submitted to concierge.`,
+        category: 'service',
+      })
+    );
 
-    toast.success(`Service request submitted for Room #${roomNumber}. Our team is attending to it.`);
+    toast.success(`Royal service request submitted for Suite #${roomNumber}. Our Khansama team is preparing it.`);
     onClose();
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content-luxury p-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.65)',
+        backdropFilter: 'blur(6px)',
+        zIndex: 1060,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="luxury-card p-4 shadow-xl"
+        style={{ maxWidth: '540px', width: '100%' }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
           <div>
-            <h4 className="font-serif text-warning mb-1">Guest Service Request</h4>
-            <p className="text-muted small mb-0">Room #{roomNumber} &bull; {guestName}</p>
+            <div className="eyebrow-kicker mb-1" style={{ fontSize: '0.72rem' }}>CONCIERGE & KHANSAMA DISPATCH</div>
+            <h4 className="font-serif fw-bold text-main fs-5 m-0">Palace Resident Service</h4>
+            <span className="text-muted small">Suite #{roomNumber} &bull; {guestName}</span>
           </div>
           <button onClick={onClose} className="btn btn-sm btn-link text-muted p-1">
             <X size={20} />
@@ -55,80 +76,92 @@ export const ServiceRequestModal = ({ isOpen, onClose, roomNumber = '202', guest
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* Service Category Buttons */}
           <div className="mb-3">
-            <label className="form-label small fw-semibold text-muted">Category</label>
+            <label className="form-label small fw-semibold text-muted">Service Category</label>
             <div className="row g-2">
               {[
-                { label: 'Room Service', icon: <Utensils size={14} /> },
-                { label: 'Housekeeping', icon: <Sparkles size={14} /> },
-                { label: 'Maintenance', icon: <Wrench size={14} /> },
-                { label: 'Concierge', icon: <Compass size={14} /> }
-              ].map((item) => (
-                <div className="col-6 col-sm-3" key={item.label}>
+                { name: 'Room Service', icon: <Utensils size={15} /> },
+                { name: 'Housekeeping', icon: <Sparkles size={15} /> },
+                { name: 'Concierge', icon: <Compass size={15} /> },
+                { name: 'Maintenance', icon: <Wrench size={15} /> },
+              ].map((cat) => (
+                <div key={cat.name} className="col-6">
                   <button
                     type="button"
-                    className={`btn btn-sm w-100 d-flex align-items-center justify-content-center gap-1 ${
-                      serviceType === item.label ? 'btn-gold' : 'btn-secondary-custom'
-                    }`}
-                    onClick={() => setServiceType(item.label)}
+                    onClick={() => setServiceType(cat.name)}
+                    style={{
+                      backgroundColor: serviceType === cat.name ? 'var(--btn-dark)' : 'var(--bg-surface-subtle)',
+                      color: serviceType === cat.name ? '#ffffff' : 'var(--text-main)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '10px',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                    }}
                   >
-                    {item.icon}
-                    <span style={{ fontSize: '0.8rem' }}>{item.label}</span>
+                    {cat.icon}
+                    <span>{cat.name}</span>
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Details */}
           <div className="mb-3">
-            <label className="form-label small fw-semibold text-muted">Request Title</label>
-            <input
-              type="text"
-              className="input-luxury"
-              placeholder={
-                serviceType === 'Room Service'
-                  ? 'e.g. Late Night Club Sandwich & Sparkling Water'
-                  : serviceType === 'Housekeeping'
-                  ? 'e.g. Extra Egyptian Cotton Towels & Bathrobe'
-                  : 'e.g. Air Conditioning temperature fine-tuning'
-              }
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label small fw-semibold text-muted">Specific Instructions / Timing</label>
+            <label className="form-label small fw-semibold text-muted">Request Details</label>
             <textarea
-              className="input-luxury"
               rows={3}
-              placeholder="Provide any dietary preferences, delivery time, or specific instructions..."
+              className="form-control rounded-3"
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              required
+              style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
             />
           </div>
 
+          {/* Priority */}
           <div className="mb-4">
-            <label className="form-label small fw-semibold text-muted">Urgency / Priority</label>
-            <select
-              className="input-luxury"
-              value={priority}
-              onChange={(e) => setPriority(e.target.value)}
-            >
-              <option value="Normal">Normal (within 30 mins)</option>
-              <option value="High">High / Prompt (within 15 mins)</option>
-              <option value="Immediate">Immediate Attention (urgent)</option>
-            </select>
+            <label className="form-label small fw-semibold text-muted">Urgency</label>
+            <div className="d-flex gap-2">
+              {['Normal', 'High', 'Urgent'].map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPriority(p)}
+                  style={{
+                    backgroundColor: priority === p ? 'var(--accent-gold)' : 'var(--bg-surface-subtle)',
+                    color: priority === p ? '#ffffff' : 'var(--text-secondary)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '9999px',
+                    padding: '5px 16px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="d-flex justify-content-end gap-2">
-            <button type="button" onClick={onClose} className="btn btn-secondary-custom">
+            <button
+              type="button"
+              onClick={onClose}
+              className="pill-btn-outline py-2 px-3"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn btn-gold">
-              <Send size={15} /> Dispatch Request
+            <button type="submit" className="pill-btn-dark py-2 px-4">
+              <Send size={15} /> Dispatch to Front Desk
             </button>
           </div>
         </form>

@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { toggleTheme } from '../redux/slices/themeSlice';
 import { logout } from '../redux/slices/authSlice';
 import NotificationDropdown from './NotificationDropdown';
 import AuthModal from './AuthModal';
 import {
-  Crown,
   Bell,
-  Sun,
-  Moon,
+  Search,
   User,
   LogOut,
   Menu,
@@ -18,15 +15,16 @@ import {
   CalendarCheck,
   ShieldCheck,
   Briefcase,
-  Layers
+  ChevronDown,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, isAuthenticated, role } = useSelector((state) => state.auth);
-  const themeMode = useSelector((state) => state.theme.mode);
   const notifications = useSelector((state) => state.notifications.notifications);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -34,96 +32,225 @@ export const Navbar = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const isHomePage = location.pathname === '/';
+
   const handleLogout = () => {
     dispatch(logout());
-    toast.info('You have safely signed out of HotelPro.');
+    toast.info('You have safely signed out.');
     navigate('/');
   };
 
   return (
     <>
-      <nav className="navbar-luxury px-3 px-lg-4 py-2">
+      <header
+        style={{
+          position: isHomePage ? 'relative' : 'sticky',
+          top: 0,
+          left: 0,
+          width: '100%',
+          zIndex: 50,
+          backgroundColor: isHomePage ? 'transparent' : '#ffffff',
+          marginBottom: isHomePage ? '-76px' : '0',
+          borderBottom: isHomePage ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid var(--border-subtle)',
+          boxShadow: isHomePage ? 'none' : '0 2px 10px rgba(0,0,0,0.04)',
+          transition: 'all 0.3s ease',
+        }}
+        className="py-3 px-3 px-lg-4"
+      >
         <div className="container-fluid d-flex align-items-center justify-content-between">
-          {/* Brand Logo */}
-          <Link to="/" className="d-flex align-items-center gap-2 text-decoration-none">
-            <div
-              className="d-flex align-items-center justify-content-center rounded-3 shadow-sm"
+          {/* Brand Crest & Logo (Matching Reference "LUMIÈRE HOTELS & RESORTS") */}
+          <Link to="/" className="d-flex flex-column text-decoration-none">
+            <span
+              className="font-serif fw-bold"
               style={{
-                width: '40px',
-                height: '40px',
-                background: 'linear-gradient(135deg, #556b2f 0%, #283618 100%)',
-                border: '1.5px solid var(--yellow-200)',
-                color: '#fef08a'
+                fontSize: '1.45rem',
+                letterSpacing: '0.22em',
+                color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                lineHeight: 1.1,
+                textTransform: 'uppercase',
               }}
             >
-              <Crown size={22} />
-            </div>
-            <div>
-              <span className="font-serif fs-4 fw-bold text-main" style={{ letterSpacing: '-0.03em' }}>
-                HOTEL<span className="text-warning">PRO</span>
-              </span>
-              <span className="d-block text-muted" style={{ fontSize: '0.65rem', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: '-4px' }}>
-                Luxury Grand Palace
-              </span>
-            </div>
+              LUMIÈRE
+            </span>
+            <span
+              style={{
+                fontSize: '0.62rem',
+                letterSpacing: '0.2em',
+                color: isHomePage ? 'rgba(255,255,255,0.75)' : 'var(--text-muted)',
+                textTransform: 'uppercase',
+                fontWeight: 500,
+                marginTop: '2px',
+              }}
+            >
+              HOTELS & RESORTS · INDIA
+            </span>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className="d-none d-lg-flex align-items-center gap-1">
-            <NavLink to="/rooms" className={({ isActive }) => `nav-link-custom ${isActive ? 'active' : ''}`}>
-              <Compass size={16} />
-              Suites & Rooms
+          {/* Center Navigation Links (Matching Reference: Home, Stays, Destinations, etc.) */}
+          <nav className="d-none d-lg-flex align-items-center gap-4">
+            <NavLink
+              to="/"
+              style={({ isActive }) => ({
+                color: isHomePage ? '#ffffff' : isActive ? 'var(--text-main)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
+                letterSpacing: '0.02em',
+                textDecoration: 'none',
+                position: 'relative',
+                paddingBottom: '4px',
+                borderBottom: isActive ? `2px solid ${isHomePage ? '#ffffff' : 'var(--text-main)'}` : '2px solid transparent',
+              })}
+            >
+              Home
             </NavLink>
 
-            <NavLink to="/guest-dashboard" className={({ isActive }) => `nav-link-custom ${isActive ? 'active' : ''}`}>
-              <CalendarCheck size={16} />
+            <NavLink
+              to="/rooms"
+              style={({ isActive }) => ({
+                color: isHomePage ? '#ffffff' : isActive ? 'var(--text-main)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
+                letterSpacing: '0.02em',
+                textDecoration: 'none',
+                paddingBottom: '4px',
+                borderBottom: isActive ? `2px solid ${isHomePage ? '#ffffff' : 'var(--text-main)'}` : '2px solid transparent',
+              })}
+            >
+              Stays
+            </NavLink>
+
+            <a
+              href="#destinations-section"
+              onClick={(e) => {
+                if (!isHomePage) {
+                  return; // let router handle or standard nav
+                }
+                e.preventDefault();
+                document.getElementById('destinations-section')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                color: isHomePage ? '#ffffff' : 'var(--text-secondary)',
+                fontWeight: 500,
+                fontSize: '0.9rem',
+                letterSpacing: '0.02em',
+                textDecoration: 'none',
+                paddingBottom: '4px',
+                borderBottom: '2px solid transparent',
+              }}
+            >
+              Destinations
+            </a>
+
+            <NavLink
+              to="/guest-dashboard"
+              style={({ isActive }) => ({
+                color: isHomePage ? '#ffffff' : isActive ? 'var(--text-main)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
+                letterSpacing: '0.02em',
+                textDecoration: 'none',
+                paddingBottom: '4px',
+                borderBottom: isActive ? `2px solid ${isHomePage ? '#ffffff' : 'var(--text-main)'}` : '2px solid transparent',
+              })}
+            >
               Guest Portal
             </NavLink>
 
-            <NavLink to="/staff-dashboard" className={({ isActive }) => `nav-link-custom ${isActive ? 'active' : ''}`}>
-              <Briefcase size={16} />
-              Staff Operations
-            </NavLink>
-
-            <NavLink to="/hotel-management" className={({ isActive }) => `nav-link-custom ${isActive ? 'active' : ''}`}>
-              <Layers size={16} />
-              Hotel Management
-            </NavLink>
-
-            <NavLink to="/admin" className={({ isActive }) => `nav-link-custom ${isActive ? 'active' : ''}`}>
-              <ShieldCheck size={16} />
-              Admin
-            </NavLink>
-          </div>
-
-          {/* Right Action Tools */}
-          <div className="d-flex align-items-center gap-2">
-            {/* Theme Toggle */}
-            <button
-              onClick={() => dispatch(toggleTheme())}
-              className="btn btn-sm btn-secondary-custom rounded-circle p-2"
-              title={`Switch to ${themeMode === 'dark' ? 'Light' : 'Dark'} mode`}
-              style={{ width: '38px', height: '38px' }}
+            <NavLink
+              to="/staff-dashboard"
+              style={({ isActive }) => ({
+                color: isHomePage ? '#ffffff' : isActive ? 'var(--text-main)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
+                letterSpacing: '0.02em',
+                textDecoration: 'none',
+                paddingBottom: '4px',
+                borderBottom: isActive ? `2px solid ${isHomePage ? '#ffffff' : 'var(--text-main)'}` : '2px solid transparent',
+              })}
             >
-              {themeMode === 'dark' ? <Sun size={17} className="text-warning" /> : <Moon size={17} />}
-            </button>
+              Staff Terminal
+            </NavLink>
 
-            {/* Notifications Dropdown Toggle */}
+            <NavLink
+              to="/admin"
+              style={({ isActive }) => ({
+                color: isHomePage ? '#ffffff' : isActive ? 'var(--text-main)' : 'var(--text-secondary)',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.9rem',
+                letterSpacing: '0.02em',
+                textDecoration: 'none',
+                paddingBottom: '4px',
+                borderBottom: isActive ? `2px solid ${isHomePage ? '#ffffff' : 'var(--text-main)'}` : '2px solid transparent',
+              })}
+            >
+              Admin Analytics
+            </NavLink>
+          </nav>
+
+          {/* Right Action Tools (Matching Reference: Search, INR ▾, Sign In pill) */}
+          <div className="d-flex align-items-center gap-3">
+            {/* Quick Search Icon */}
+            <Link
+              to="/rooms"
+              style={{
+                color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '8px',
+                borderRadius: '50%',
+                transition: 'all 0.2s ease',
+              }}
+              title="Search Stays & Destinations"
+            >
+              <Search size={18} />
+            </Link>
+
+            {/* Currency Selector: INR (₹) */}
+            <div
+              className="d-none d-sm-flex align-items-center gap-1"
+              style={{
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                padding: '4px 8px',
+                cursor: 'pointer',
+              }}
+              title="Indian Rupee (INR) Default"
+            >
+              <span>INR ₹</span>
+              <ChevronDown size={14} className="opacity-75" />
+            </div>
+
+            {/* Notifications Bell */}
             <div className="position-relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="btn btn-sm btn-secondary-custom rounded-circle p-2 position-relative"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                  padding: '8px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  position: 'relative',
+                }}
                 title="Notifications"
-                style={{ width: '38px', height: '38px' }}
               >
-                <Bell size={17} />
+                <Bell size={18} />
                 {unreadCount > 0 && (
                   <span
-                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                    style={{ fontSize: '0.65rem' }}
-                  >
-                    {unreadCount}
-                  </span>
+                    style={{
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: 'var(--accent-gold)',
+                    }}
+                  />
                 )}
               </button>
 
@@ -132,38 +259,39 @@ export const Navbar = () => {
               )}
             </div>
 
-            {/* Auth / Profile */}
-            {isAuthenticated && currentUser ? (
-              <div className="d-none d-sm-flex align-items-center gap-2 ps-2 border-start">
+            {/* Sign In Button or Profile Menu (Reference Exact Styling) */}
+            {isAuthenticated ? (
+              <div className="d-flex align-items-center gap-2">
                 <Link
-                  to={role === 'guest' ? '/guest-dashboard' : role === 'staff' ? '/staff-dashboard' : '/admin'}
-                  className="d-flex align-items-center gap-2 text-decoration-none text-main"
-                  title="View Profile Dashboard"
+                  to={role === 'admin' ? '/admin' : role === 'staff' ? '/staff-dashboard' : '/guest-dashboard'}
+                  style={{
+                    backgroundColor: isHomePage ? 'rgba(255,255,255,0.2)' : 'var(--bg-surface-subtle)',
+                    backdropFilter: 'blur(8px)',
+                    border: `1px solid ${isHomePage ? 'rgba(255,255,255,0.4)' : 'var(--border-subtle)'}`,
+                    color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                    borderRadius: '9999px',
+                    padding: '6px 16px',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    textDecoration: 'none',
+                  }}
                 >
-                  <div
-                    className="rounded-circle d-flex align-items-center justify-content-center fw-bold"
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      backgroundColor: 'var(--gold-100)',
-                      color: 'var(--gold-700)',
-                      fontSize: '0.85rem'
-                    }}
-                  >
-                    {currentUser.name ? currentUser.name.charAt(0) : 'U'}
-                  </div>
-                  <div className="d-none d-xl-block text-start">
-                    <div className="small fw-bold lh-1">{currentUser.name}</div>
-                    <span className="badge bg-secondary-subtle text-muted" style={{ fontSize: '0.65rem' }}>
-                      {role.toUpperCase()}
-                    </span>
-                  </div>
+                  <User size={15} />
+                  <span>{currentUser?.name?.split(' ')[0] || 'Profile'}</span>
                 </Link>
-
                 <button
                   onClick={handleLogout}
-                  className="btn btn-sm btn-link text-muted p-1"
-                  title="Sign out"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: isHomePage ? '#ffffff' : 'var(--text-muted)',
+                    padding: '6px',
+                    cursor: 'pointer',
+                  }}
+                  title="Sign Out"
                 >
                   <LogOut size={16} />
                 </button>
@@ -171,94 +299,82 @@ export const Navbar = () => {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="btn btn-sm btn-secondary-custom d-none d-sm-inline-flex"
+                style={{
+                  backgroundColor: isHomePage ? 'rgba(0, 0, 0, 0.4)' : '#ffffff',
+                  backdropFilter: 'blur(8px)',
+                  color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                  border: `1px solid ${isHomePage ? 'rgba(255, 255, 255, 0.6)' : 'var(--border-medium)'}`,
+                  borderRadius: '9999px',
+                  padding: '8px 22px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = isHomePage ? 'rgba(255,255,255,0.2)' : '#f6f4f0';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = isHomePage ? 'rgba(0, 0, 0, 0.4)' : '#ffffff';
+                }}
               >
-                <User size={15} /> Sign In
+                Sign In
               </button>
             )}
 
-            {/* Primary Booking CTA */}
-            <Link to="/rooms" className="btn btn-gold btn-sm d-none d-md-inline-flex">
-              Book A Suite
-            </Link>
-
-            {/* Mobile Menu Hamburger */}
+            {/* Mobile Hamburger Toggle */}
             <button
+              className="d-lg-none"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="btn btn-sm btn-secondary-custom d-lg-none p-2"
-              title="Toggle Navigation Menu"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: isHomePage ? '#ffffff' : 'var(--text-main)',
+                padding: '6px',
+                cursor: 'pointer',
+              }}
             >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="d-lg-none mt-2 pt-2 border-top">
-            <div className="d-flex flex-column gap-1 pb-3">
-              <NavLink
-                to="/rooms"
-                onClick={() => setMobileMenuOpen(false)}
-                className="nav-link-custom py-2"
-              >
-                <Compass size={18} /> Suites & Luxury Rooms
-              </NavLink>
-              <NavLink
-                to="/guest-dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="nav-link-custom py-2"
-              >
-                <CalendarCheck size={18} /> Guest Portal & Stays
-              </NavLink>
-              <NavLink
-                to="/staff-dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="nav-link-custom py-2"
-              >
-                <Briefcase size={18} /> Staff Desk & Operations
-              </NavLink>
-              <NavLink
-                to="/hotel-management"
-                onClick={() => setMobileMenuOpen(false)}
-                className="nav-link-custom py-2"
-              >
-                <Layers size={18} /> Hotel Management & Pricing
-              </NavLink>
-              <NavLink
-                to="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="nav-link-custom py-2"
-              >
-                <ShieldCheck size={18} /> Executive Admin & Analytics
-              </NavLink>
-
-              <div className="pt-2 mt-2 border-top d-flex gap-2">
-                <Link
-                  to="/rooms"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="btn btn-gold w-100"
-                >
-                  Book A Suite
-                </Link>
-                {!isAuthenticated && (
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      setShowAuthModal(true);
-                    }}
-                    className="btn btn-secondary-custom w-100"
-                  >
-                    Sign In
-                  </button>
-                )}
-              </div>
+          <div
+            className="d-lg-none mt-3 p-3 rounded-4 shadow-lg"
+            style={{
+              backgroundColor: '#ffffff',
+              color: 'var(--text-main)',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div className="d-flex flex-column gap-2">
+              <Link to="/" onClick={() => setMobileMenuOpen(false)} className="p-2 fw-semibold text-dark text-decoration-none">
+                Home
+              </Link>
+              <Link to="/rooms" onClick={() => setMobileMenuOpen(false)} className="p-2 fw-semibold text-dark text-decoration-none">
+                Stays & Palaces
+              </Link>
+              <Link to="/guest-dashboard" onClick={() => setMobileMenuOpen(false)} className="p-2 fw-semibold text-dark text-decoration-none">
+                Guest Portal
+              </Link>
+              <Link to="/staff-dashboard" onClick={() => setMobileMenuOpen(false)} className="p-2 fw-semibold text-dark text-decoration-none">
+                Staff Operations
+              </Link>
+              <Link to="/hotel-management" onClick={() => setMobileMenuOpen(false)} className="p-2 fw-semibold text-dark text-decoration-none">
+                Hotel Inventory
+              </Link>
+              <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="p-2 fw-semibold text-dark text-decoration-none">
+                Admin Analytics
+              </Link>
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      {/* Auth Modal */}
+      {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
     </>
   );
 };

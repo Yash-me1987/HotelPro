@@ -1,221 +1,299 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedCategory, setSearchTerm } from '../redux/slices/roomsSlice';
 import {
+  MapPin,
   Calendar,
   Users,
-  Search,
+  ArrowRight,
+  Heart,
   Star,
-  Award,
   Sparkles,
-  Wifi,
-  Coffee,
   ShieldCheck,
   Compass,
-  ArrowRight,
-  CheckCircle2,
-  Tv,
-  Bath,
   UtensilsCrossed,
-  Crown
+  Flower2,
+  ChevronRight
 } from 'lucide-react';
+import { popularDestinations } from '../data/initialData';
+import { setSelectedCategory, setSearchTerm } from '../redux/slices/roomsSlice';
 
 export const HomePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const rooms = useSelector((state) => state.rooms.rooms);
-  const featuredRooms = rooms.slice(0, 3);
 
-  // Quick Search Widget State
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
-  const [guests, setGuests] = useState('2');
-  const [category, setCategory] = useState('All');
+  // Search Bar State
+  const [destination, setDestination] = useState('');
+  const [checkIn, setCheckIn] = useState('2026-11-01');
+  const [checkOut, setCheckOut] = useState('2026-11-05');
+  const [guests, setGuests] = useState('2 guests, 1 room');
 
-  const handleSearch = (e) => {
+  // Favorites state
+  const [favorites, setFavorites] = useState(['SU-402', 'PH-101']);
+
+  const toggleFavorite = (id, e) => {
     e.preventDefault();
-    dispatch(setSelectedCategory(category));
+    e.stopPropagation();
+    if (favorites.includes(id)) {
+      setFavorites(favorites.filter((f) => f !== id));
+    } else {
+      setFavorites([...favorites, id]);
+    }
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (destination) {
+      dispatch(setSearchTerm(destination));
+    }
     navigate('/rooms');
   };
 
+  // Get 4 featured luxury suites for grid (matching reference layout)
+  const featuredStays = rooms.slice(0, 4);
+
   return (
-    <div className="home-page">
-      {/* Luxury Hero Banner */}
+    <div style={{ backgroundColor: 'var(--bg-body)' }}>
+      {/* ===================================================================
+          1. LUXURY HERO BANNER (MATCHING REFERENCE IMAGE)
+          =================================================================== */}
       <section
-        className="hero-luxury"
+        className="luxury-hero"
         style={{
-          backgroundImage:
-            'url("https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=2000&q=85")'
+          backgroundImage: `url('https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=2200&q=85')`,
         }}
       >
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <div className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3 border"
-               style={{ backgroundColor: 'rgba(254, 240, 138, 0.12)', borderColor: 'var(--yellow-300)', backdropFilter: 'blur(8px)' }}>
-            <Sparkles size={16} className="text-warning" />
-            <span className="small text-warning fw-semibold text-uppercase" style={{ letterSpacing: '0.1em' }}>
-              The World's Most Prestigious Stay
-            </span>
-          </div>
+        <div className="luxury-hero-overlay" />
 
-          <h1 className="display-3 font-serif fw-bold text-white mb-3" style={{ letterSpacing: '-0.02em', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-            Sanctuary of Refinement & Unrivaled Comfort
-          </h1>
-          <p className="lead text-light opacity-90 mx-auto mb-4" style={{ maxWidth: '980px', fontWeight: 300 }}>
-            Welcome to HotelPro Grand Palace. Experience bespoke hospitality, masterfully designed suites, Michelin-star culinary journeys, and an effortless digital stay management system.
-          </p>
+        <div className="container position-relative" style={{ zIndex: 10 }}>
+          <div className="luxury-hero-content">
+            {/* Subtle Eyebrow Kicker */}
+            <div className="eyebrow-kicker eyebrow-kicker-white mb-3">
+              STAY BEYOND ORDINARY
+            </div>
 
-          <div className="d-flex justify-content-center gap-3 flex-wrap">
-            <Link to="/rooms" className="btn btn-gold btn-lg px-4 py-3">
-              Explore Our Suites <ArrowRight size={18} />
-            </Link>
-            <Link to="/guest-dashboard" className="btn btn-secondary-custom btn-lg px-4 py-3">
-              Manage Active Stay
-            </Link>
-          </div>
+            {/* Editorial Headline */}
+            <h1 className="luxury-hero-title">
+              Where Every Stay Feels Special
+            </h1>
 
-          {/* Quick Search Widget */}
-          <div className="search-widget mt-5 text-start">
-            <form onSubmit={handleSearch} className="row g-3 align-items-end">
-              <div className="col-12 col-md-3">
-                <label className="form-label small fw-bold text-muted d-flex align-items-center gap-1">
-                  <Calendar size={14} className="text-warning" /> Check-In Date
-                </label>
-                <input
-                  type="date"
-                  className="input-luxury"
-                  value={checkIn}
-                  onChange={(e) => setCheckIn(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                />
-              </div>
+            {/* Subtitle */}
+            <p className="luxury-hero-subtitle">
+              Discover handpicked luxury palaces, breathtaking Himalayan retreats,
+              and unforgettable heritage experiences across India and beyond.
+            </p>
 
-              <div className="col-12 col-md-3">
-                <label className="form-label small fw-bold text-muted d-flex align-items-center gap-1">
-                  <Calendar size={14} className="text-warning" /> Check-Out Date
-                </label>
-                <input
-                  type="date"
-                  className="input-luxury"
-                  value={checkOut}
-                  onChange={(e) => setCheckOut(e.target.value)}
-                  min={checkIn || new Date().toISOString().split('T')[0]}
-                />
-              </div>
-
-              <div className="col-6 col-md-2">
-                <label className="form-label small fw-bold text-muted d-flex align-items-center gap-1">
-                  <Users size={14} className="text-warning" /> Guests
-                </label>
-                <select
-                  className="input-luxury"
-                  value={guests}
-                  onChange={(e) => setGuests(e.target.value)}
-                >
-                  <option value="1">1 Guest</option>
-                  <option value="2">2 Guests</option>
-                  <option value="3">3 Guests</option>
-                  <option value="4">4+ Guests</option>
-                </select>
-              </div>
-
-              <div className="col-6 col-md-2">
-                <label className="form-label small fw-bold text-muted d-flex align-items-center gap-1">
-                  <Compass size={14} className="text-warning" /> Suite Type
-                </label>
-                <select
-                  className="input-luxury"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                >
-                  <option value="All">All Suites</option>
-                  <option value="Presidential">Presidential</option>
-                  <option value="Ocean View">Ocean View</option>
-                  <option value="Executive Suite">Executive</option>
-                  <option value="Deluxe">Deluxe King</option>
-                  <option value="Family Villa">Family Villa</option>
-                </select>
-              </div>
-
-              <div className="col-12 col-md-2">
-                <button type="submit" className="btn btn-gold w-100 py-2 d-flex align-items-center justify-content-center gap-2">
-                  <Search size={16} /> Check Availability
-                </button>
-              </div>
-            </form>
+            {/* Pill CTA Button */}
+            <div className="d-flex align-items-center gap-3">
+              <Link to="/rooms" className="pill-btn-white">
+                <span>Explore Stays</span>
+                <ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Featured Suites Showcase */}
-      <section className="py-5" style={{ backgroundColor: 'var(--bg-primary)' }}>
-        <div className="container py-4">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-5">
+      {/* ===================================================================
+          2. FLOATING SEARCH BAR (MATCHING REFERENCE EXACT STRUCTURE)
+          =================================================================== */}
+      <div className="floating-search-container">
+        <form onSubmit={handleSearchSubmit} className="floating-search-card">
+          {/* Destination */}
+          <div className="search-field-item">
+            <MapPin size={20} className="search-field-icon" />
+            <div className="search-field-content w-100">
+              <span className="search-field-label">Destination</span>
+              <input
+                type="text"
+                placeholder="Where are you going? (e.g. Udaipur, Manali, Mumbai)"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                className="search-field-input"
+              />
+            </div>
+          </div>
+
+          {/* Check In */}
+          <div className="search-field-item">
+            <Calendar size={20} className="search-field-icon" />
+            <div className="search-field-content">
+              <span className="search-field-label">Check In</span>
+              <input
+                type="date"
+                value={checkIn}
+                onChange={(e) => setCheckIn(e.target.value)}
+                className="search-field-input"
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
+          </div>
+
+          {/* Check Out */}
+          <div className="search-field-item">
+            <Calendar size={20} className="search-field-icon" />
+            <div className="search-field-content">
+              <span className="search-field-label">Check Out</span>
+              <input
+                type="date"
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
+                className="search-field-input"
+                style={{ cursor: 'pointer' }}
+              />
+            </div>
+          </div>
+
+          {/* Guests */}
+          <div className="search-field-item">
+            <Users size={20} className="search-field-icon" />
+            <div className="search-field-content">
+              <span className="search-field-label">Guests</span>
+              <select
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
+                className="search-field-input"
+                style={{ cursor: 'pointer', background: 'transparent', border: 'none' }}
+              >
+                <option value="1 guest, 1 room">1 guest, 1 room</option>
+                <option value="2 guests, 1 room">2 guests, 1 room</option>
+                <option value="3 guests, 1 room">3 guests, 1 room</option>
+                <option value="4+ guests, Family Suite">4+ guests, Family Suite</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Search Button (Dark Charcoal Pill) */}
+          <button type="submit" className="pill-btn-dark py-3 px-4 flex-shrink-0">
+            <span>Search Hotels</span>
+            <ArrowRight size={16} />
+          </button>
+        </form>
+      </div>
+
+      {/* ===================================================================
+          3. FEATURED STAYS (MATCHING REFERENCE EXACT CARDS & PRICING)
+          =================================================================== */}
+      <section className="py-5">
+        <div className="container">
+          {/* Section Header with View All */}
+          <div className="d-flex align-items-end justify-content-between mb-4">
             <div>
-              <span className="text-warning small text-uppercase fw-bold letter-spacing-1">Signature Collections</span>
-              <h2 className="display-6 font-serif fw-bold mt-1 mb-2">Featured Suites & Residences</h2>
-              <p className="text-muted mb-0">Impeccably designed spaces curated for ultimate tranquility and grandeur.</p>
+              <div className="eyebrow-kicker mb-2">HANDPICKED FOR YOU</div>
+              <h2 className="display-6 font-serif fw-bold m-0">Featured Stays</h2>
             </div>
-            <Link to="/rooms" className="btn btn-gold-outline mt-3 mt-md-0">
-              View All Accommodations &rarr;
+            <Link
+              to="/rooms"
+              className="d-inline-flex align-items-center gap-1 text-decoration-none fw-semibold"
+              style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}
+            >
+              <span>View All</span>
+              <ArrowRight size={16} />
             </Link>
           </div>
 
+          {/* 4-Column Grid */}
           <div className="row g-4">
-            {featuredRooms.map((room) => (
-              <div className="col-lg-4 col-md-6" key={room.id}>
-                <div className="card-luxury h-100 d-flex flex-column overflow-hidden">
-                  <div className="position-relative overflow-hidden" style={{ height: '240px' }}>
-                    <img
-                      src={room.images[0]}
-                      alt={room.name}
-                      className="w-100 h-100 object-fit-cover"
-                      style={{ transition: 'transform 0.5s ease' }}
-                    />
-                    <div className="position-absolute top-0 start-0 m-3">
-                      <span className="badge bg-dark bg-opacity-75 text-warning border border-warning px-2 py-1 small">
-                        {room.category}
-                      </span>
-                    </div>
-                    <div className="position-absolute bottom-0 end-0 m-3">
-                      <span className="badge bg-dark bg-opacity-90 text-light px-3 py-2 fw-bold">
-                        ${room.price} <small className="text-muted fw-normal">/ night</small>
-                      </span>
-                    </div>
-                  </div>
+            {featuredStays.map((stay) => (
+              <div key={stay.id} className="col-12 col-md-6 col-lg-3">
+                <Link to={`/rooms/${stay.id || stay.roomNumber}`} className="text-decoration-none">
+                  <div className="stay-card">
+                    {/* Image with Heart Wishlist */}
+                    <div className="stay-card-img-wrapper">
+                      <img
+                        src={stay.images[0] || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'}
+                        alt={stay.title || stay.name}
+                        className="stay-card-img"
+                        loading="lazy"
+                      />
+                      <button
+                        onClick={(e) => toggleFavorite(stay.id, e)}
+                        className={`stay-card-heart-btn ${favorites.includes(stay.id) ? 'active' : ''}`}
+                        title="Add to Wishlist"
+                      >
+                        <Heart size={16} fill={favorites.includes(stay.id) ? '#e11d48' : 'none'} />
+                      </button>
 
-                  <div className="p-4 d-flex flex-column flex-grow-1">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <div className="d-flex align-items-center gap-1 text-warning small">
-                        <Star size={15} fill="#f59e0b" />
-                        <span className="fw-bold">{room.rating}</span>
-                        <span className="text-muted">({room.reviewsCount} reviews)</span>
+                      {stay.category && (
+                        <div className="stay-card-badge">{stay.category}</div>
+                      )}
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="stay-card-body">
+                      {/* Location Tag */}
+                      <div className="stay-card-location">
+                        <MapPin size={13} style={{ color: 'var(--accent-gold)' }} />
+                        <span>{stay.destination || stay.location || 'India'}</span>
                       </div>
-                      <span className="text-muted small">Floor {room.floor} &bull; Room #{room.roomNumber}</span>
-                    </div>
 
-                    <h5 className="font-serif fw-bold mb-2">{room.name}</h5>
-                    <p className="text-muted small mb-3 flex-grow-1" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {room.description}
-                    </p>
+                      {/* Title */}
+                      <h3 className="stay-card-title text-truncate" title={stay.title || stay.name}>
+                        {stay.title || stay.name}
+                      </h3>
 
-                    <div className="d-flex align-items-center gap-3 text-muted small py-2 mb-3 border-top border-bottom">
-                      <span>{room.bedType}</span>
-                      <span>&bull;</span>
-                      <span>{room.sizeSqFt} sq ft</span>
-                      <span>&bull;</span>
-                      <span>Max {room.capacity} Guests</span>
-                    </div>
+                      {/* Footer: Rating & Price */}
+                      <div className="stay-card-footer">
+                        <div className="stay-card-rating">
+                          <Star size={14} fill="#f59e0b" color="#f59e0b" />
+                          <span>{stay.rating || 4.9}</span>
+                          <span className="stay-card-reviews">
+                            ({(stay.reviewsCount || 1200) > 999 ? `${((stay.reviewsCount || 1200)/1000).toFixed(1)}K` : stay.reviewsCount})
+                          </span>
+                        </div>
 
-                    <div className="d-flex gap-2">
-                      <Link to={`/rooms/${room.id}`} className="btn btn-secondary-custom flex-grow-1">
-                        View Details
-                      </Link>
-                      <Link to={`/rooms/${room.id}`} className="btn btn-gold flex-grow-1">
-                        Reserve Now
-                      </Link>
+                        <div className="text-end">
+                          <span className="stay-card-price">
+                            ₹ {(stay.price || stay.basePrice || 12999).toLocaleString('en-IN')}
+                          </span>
+                          <span className="stay-card-price-unit"> / night</span>
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===================================================================
+          4. POPULAR DESTINATIONS (MATCHING REFERENCE IMAGE)
+          =================================================================== */}
+      <section className="py-5" id="destinations" style={{ backgroundColor: 'var(--bg-surface-subtle)' }}>
+        <div className="container">
+          <div className="d-flex align-items-end justify-content-between mb-4">
+            <div>
+              <div className="eyebrow-kicker mb-2">POPULAR DESTINATIONS</div>
+              <h2 className="display-6 font-serif fw-bold m-0">Explore India & Beyond</h2>
+            </div>
+            <Link
+              to="/rooms"
+              className="d-inline-flex align-items-center gap-1 text-decoration-none fw-semibold"
+              style={{ color: 'var(--text-main)', fontSize: '0.9rem' }}
+            >
+              <span>View All</span>
+              <ArrowRight size={16} />
+            </Link>
+          </div>
+
+          <div className="row g-3">
+            {popularDestinations.map((dest) => (
+              <div key={dest.id} className="col-6 col-md-4 col-lg-2">
+                <div
+                  onClick={() => {
+                    dispatch(setSearchTerm(dest.name));
+                    navigate('/rooms');
+                  }}
+                  className="destination-card"
+                  style={{ cursor: 'pointer' }}
+                >
+                  <img src={dest.image} alt={dest.name} className="destination-card-img" />
+                  <div className="destination-card-overlay">
+                    <h4 className="destination-card-title">{dest.name}</h4>
+                    <p className="destination-card-sub">{dest.state}</p>
                   </div>
                 </div>
               </div>
@@ -224,153 +302,99 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* 5-Star Experience & Amenities */}
-      <section id="amenities" className="py-5 border-top border-bottom" style={{ backgroundColor: 'var(--bg-surface)' }}>
-        <div className="container py-4">
-          <div className="text-center max-w-700 mx-auto mb-5">
-            <span className="text-warning small text-uppercase fw-bold letter-spacing-1">World-Class Services</span>
-            <h2 className="display-6 font-serif fw-bold mt-1 mb-3">The Epitome of Modern Hospitality</h2>
-            <p className="text-muted">Every moment at HotelPro is curated with perfection, intuition, and sublime elegance.</p>
+      {/* ===================================================================
+          5. AUTHENTIC INDIAN ROYAL HOSPITALITY PILLARS
+          =================================================================== */}
+      <section className="py-5 my-3">
+        <div className="container">
+          <div className="text-center mb-5" style={{ maxWidth: '720px', margin: '0 auto' }}>
+            <div className="eyebrow-kicker mb-2">ATITHI DEVO BHAVA</div>
+            <h2 className="display-5 font-serif fw-bold mb-3">
+              The Quintessence of Indian Hospitality
+            </h2>
+            <p className="text-secondary" style={{ fontSize: '1.02rem' }}>
+              Where ancient royal traditions meet contemporary five-star indulgence.
+              Every stay is curated by personal Khansamas, wellness vaidyas, and heritage concierges.
+            </p>
           </div>
 
           <div className="row g-4">
-            {[
-              {
-                icon: <UtensilsCrossed size={28} className="text-warning" />,
-                title: "Michelin-Star Gastronomy",
-                desc: "Three bespoke dining salons helmed by world-renowned executive chefs, paired with our private subterranean wine cellar."
-              },
-              {
-                icon: <Bath size={28} className="text-warning" />,
-                title: "Lagoon Hydro-Spa & Thermal Baths",
-                desc: "Holistic therapeutic rituals, magnesium plunge pools, and private steam cabanas designed for full restorative balance."
-              },
-              {
-                icon: <ShieldCheck size={28} className="text-warning" />,
-                title: "VIP 24/7 Butler & Concierge",
-                desc: "Les Clefs d'Or accredited concierges catering to your private yacht charters, helicopter transfers, and discreet reservations."
-              },
-              {
-                icon: <Wifi size={28} className="text-warning" />,
-                title: "Ultra-Fast Fiber & Smart Suites",
-                desc: "Integrated wireless room controls, automated thermal shading, 4K OLED streaming, and seamless keyless entry."
-              }
-            ].map((item, idx) => (
-              <div className="col-md-6 col-lg-3" key={idx}>
-                <div className="card-luxury p-4 h-100 text-center">
-                  <div className="stat-icon-wrapper mx-auto mb-3" style={{ backgroundColor: 'var(--gold-50)' }}>
-                    {item.icon}
-                  </div>
-                  <h5 className="font-serif fw-bold mb-2">{item.title}</h5>
-                  <p className="text-muted small mb-0">{item.desc}</p>
+            <div className="col-12 col-md-4">
+              <div className="luxury-card h-100 text-center p-4">
+                <div
+                  className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                  style={{ width: '64px', height: '64px', backgroundColor: 'var(--accent-gold-light)', color: 'var(--accent-gold)' }}
+                >
+                  <UtensilsCrossed size={28} />
                 </div>
+                <h3 className="font-serif fs-4 fw-bold mb-2">Royal Khansama Dining</h3>
+                <p className="text-secondary small mb-0">
+                  Private royal recipes preserved across generations, from decadent Rajasthani Daal Baati Churma to fragrant Malabar Coast spice-infused lobster.
+                </p>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+            </div>
 
-      {/* Live Hotel Statistics */}
-      <section className="py-5" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-        <div className="container py-3">
-          <div className="row g-4 text-center">
-            <div className="col-6 col-lg-3">
-              <div className="stat-card flex-column justify-content-center text-center">
-                <h2 className="display-5 fw-bold text-warning font-serif mb-0">98.4%</h2>
-                <span className="text-muted small text-uppercase fw-semibold mt-1">Guest Satisfaction Rating</span>
-              </div>
-            </div>
-            <div className="col-6 col-lg-3">
-              <div className="stat-card flex-column justify-content-center text-center">
-                <h2 className="display-5 fw-bold text-warning font-serif mb-0">150+</h2>
-                <span className="text-muted small text-uppercase fw-semibold mt-1">Bespoke Suites & Villas</span>
-              </div>
-            </div>
-            <div className="col-6 col-lg-3">
-              <div className="stat-card flex-column justify-content-center text-center">
-                <h2 className="display-5 fw-bold text-warning font-serif mb-0">24/7</h2>
-                <span className="text-muted small text-uppercase fw-semibold mt-1">Dedicated Royal Butler Service</span>
-              </div>
-            </div>
-            <div className="col-6 col-lg-3">
-              <div className="stat-card flex-column justify-content-center text-center">
-                <h2 className="display-5 fw-bold text-warning font-serif mb-0">4.96</h2>
-                <span className="text-muted small text-uppercase fw-semibold mt-1">Forbes & TripAdvisor Score</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Verified Guest Testimonials */}
-      <section className="py-5" style={{ backgroundColor: 'var(--bg-surface)' }}>
-        <div className="container py-4">
-          <div className="text-center max-w-700 mx-auto mb-5">
-            <span className="text-warning small text-uppercase fw-bold letter-spacing-1">Guest Perspectives</span>
-            <h2 className="display-6 font-serif fw-bold mt-1 mb-3">Words from Discerning Travelers</h2>
-            <p className="text-muted">Stories of cherished moments and unforgettable stays at HotelPro Grand Palace.</p>
-          </div>
-
-          <div className="row g-4">
-            {[
-              {
-                name: "Lady Genevieve Sinclair",
-                title: "Frequent VIP Resident & Philanthropist",
-                review: "The Presidential Penthouse exceeded even my highest expectations. The sunset views over the ocean combined with the bespoke butler service created a truly sublime holiday.",
-                rating: 5,
-                stay: "Presidential Penthouse Suite"
-              },
-              {
-                name: "Sir Arthur Kensington",
-                title: "Architectural Digest Contributing Editor",
-                review: "Flawless attention to interior architecture and acoustic privacy. From the keyless mobile check-in to the seamless room service dispatch, HotelPro sets the gold standard.",
-                rating: 5,
-                stay: "Royal Oceanfront Suite"
-              },
-              {
-                name: "Madame Chantal Moreau",
-                title: "Art Biennale Curator",
-                review: "The garden villa was our private paradise. Impeccable housekeeping, pristine cleanliness, and extraordinary dining. We have already booked our return stay.",
-                rating: 5,
-                stay: "Garden Luxury Villa"
-              }
-            ].map((t, idx) => (
-              <div className="col-lg-4" key={idx}>
-                <div className="card-luxury p-4 h-100 d-flex flex-column">
-                  <div className="d-flex gap-1 text-warning mb-3">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <Star key={i} size={16} fill="#f59e0b" />
-                    ))}
-                  </div>
-                  <p className="text-muted fst-italic mb-4 flex-grow-1" style={{ fontSize: '0.95rem' }}>
-                    "{t.review}"
-                  </p>
-                  <div className="pt-3 border-top d-flex justify-content-between align-items-center">
-                    <div>
-                      <h6 className="font-serif fw-bold mb-0">{t.name}</h6>
-                      <span className="text-muted small">{t.title}</span>
-                    </div>
-                    <span className="badge bg-secondary-subtle text-muted small">{t.stay}</span>
-                  </div>
+            <div className="col-12 col-md-4">
+              <div className="luxury-card h-100 text-center p-4">
+                <div
+                  className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                  style={{ width: '64px', height: '64px', backgroundColor: 'var(--accent-gold-light)', color: 'var(--accent-gold)' }}
+                >
+                  <Flower2 size={28} />
                 </div>
+                <h3 className="font-serif fs-4 fw-bold mb-2">Ayurvedic Sanctuary</h3>
+                <p className="text-secondary small mb-0">
+                  Customized dosha evaluations, therapeutic Shirodhara with cold-pressed herbal oils, and sunrise Himalayan yoga pavilions overlooking the mist.
+                </p>
               </div>
-            ))}
+            </div>
+
+            <div className="col-12 col-md-4">
+              <div className="luxury-card h-100 text-center p-4">
+                <div
+                  className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                  style={{ width: '64px', height: '64px', backgroundColor: 'var(--accent-gold-light)', color: 'var(--accent-gold)' }}
+                >
+                  <Sparkles size={28} />
+                </div>
+                <h3 className="font-serif fs-4 fw-bold mb-2">Contactless Digital Key</h3>
+                <p className="text-secondary small mb-0">
+                  Effortlessly bypass the front desk with smart NFC room entry directly from your smartphone, coupled with 24/7 instant WhatsApp Butler dispatch.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-5 position-relative text-center overflow-hidden"
-               style={{ background: 'linear-gradient(135deg, #12180e 0%, #1e2a18 50%, #2f3e24 100%)', color: '#fff' }}>
-        <div className="container py-5 position-relative" style={{ zIndex: 2 }}>
-          <Crown size={40} className="text-warning mb-3" />
-          <h2 className="display-5 font-serif fw-bold text-white mb-3">Begin Your Unforgettable Journey</h2>
-          <p className="lead text-light opacity-80 mx-auto mb-4" style={{ maxWidth: '640px' }}>
-            Book direct on HotelPro for guaranteed best rates, complimentary room upgrades upon availability, and late check-out privileges.
+      {/* ===================================================================
+          6. EDITORIAL CTA BANNER
+          =================================================================== */}
+      <section
+        className="py-5 position-relative text-center text-white my-4"
+        style={{
+          background: `linear-gradient(180deg, rgba(18,18,18,0.75) 0%, rgba(18,18,18,0.92) 100%), url('https://images.unsplash.com/photo-1591088398332-8a7791972843?auto=format&fit=crop&w=2000&q=80') center/cover`,
+          borderRadius: '24px',
+          maxWidth: '94%',
+          margin: '0 auto 60px auto',
+          padding: '80px 20px',
+        }}
+      >
+        <div className="position-relative" style={{ zIndex: 2, maxWidth: '750px', margin: '0 auto' }}>
+          <div className="eyebrow-kicker eyebrow-kicker-white mb-3">EXCLUSIVE PRIVILEGE CLUB</div>
+          <h2 className="display-5 font-serif fw-bold mb-3 text-white">
+            Begin Your Indian Palace Journey
+          </h2>
+          <p className="lead opacity-90 mb-4" style={{ fontWeight: 300 }}>
+            Join our Lumière Privilege Club for complimentary suite upgrades,
+            18% GST absorption benefits, and bespoke Lake Pichola private boat dining.
           </p>
-          <div className="d-flex justify-content-center gap-3">
-            <Link to="/rooms" className="btn btn-gold btn-lg px-4 py-3">
-              Reserve Your Sanctuary Now
+          <div className="d-flex align-items-center justify-content-center gap-3 flex-wrap">
+            <Link to="/rooms" className="pill-btn-white">
+              Explore Available Suites
+            </Link>
+            <Link to="/guest-dashboard" className="pill-btn-outline" style={{ color: '#ffffff', borderColor: 'rgba(255,255,255,0.4)' }}>
+              Access Resident Folio
             </Link>
           </div>
         </div>

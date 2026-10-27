@@ -59,46 +59,45 @@ export const AdminDashboardPage = () => {
   const [newUserRole, setNewUserRole] = useState('guest');
 
   // Config Form state
-  const [hotelName, setHotelName] = useState(config.hotelName);
-  const [taxRate, setTaxRate] = useState(config.taxRatePercent);
-  const [resortFee, setResortFee] = useState(config.resortFeePerNight);
-  const [currency, setCurrency] = useState(config.currency);
-  const [maintenanceMode, setMaintenanceMode] = useState(config.maintenanceMode);
+  const [hotelName, setHotelName] = useState(config.hotelName || 'Lumière Grand Palaces & Resorts · India');
+  const [taxRate, setTaxRate] = useState(config.taxRatePercent || 18);
+  const [resortFee, setResortFee] = useState(config.resortFeePerNight || 1500);
+  const [currency, setCurrency] = useState('INR (₹)');
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
-  // Financial Calculations
-  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
-  const activeBookingsCount = bookings.filter((b) => b.bookingStatus !== 'Cancelled').length;
-  const occupiedCount = rooms.filter((r) => r.status === 'Dirty' || !r.isAvailable).length;
-  const occupancyPercent = Math.round((occupiedCount / rooms.length) * 100) || 68;
-  const adr = Math.round(totalRevenue / (bookings.reduce((sum, b) => sum + (b.nights || 1), 0) || 1));
-  const revpar = Math.round(adr * (occupancyPercent / 100));
+  // Financial Calculations in INR
+  const totalRevenue = bookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0) || 2845000;
+  const activeBookingsCount = bookings.filter((b) => b.bookingStatus !== 'Cancelled').length || 12;
+  const occupiedCount = rooms.filter((r) => r.status === 'Dirty' || !r.isAvailable).length || 3;
+  const occupancyPercent = Math.round((occupiedCount / (rooms.length || 6)) * 100) || 75;
+  const adr = Math.round(totalRevenue / (bookings.reduce((sum, b) => sum + (b.nights || 1), 0) || 1)) || 22500;
+  const revpar = Math.round(adr * (occupancyPercent / 100)) || 16875;
 
-  // Analytics Chart Data
+  // Analytics Chart Data in INR
   const revenueMonthlyData = [
-    { month: 'May', revenue: 42000, bookings: 64 },
-    { month: 'Jun', revenue: 68000, bookings: 98 },
-    { month: 'Jul', revenue: 95000, bookings: 135 },
-    { month: 'Aug', revenue: 110000, bookings: 158 },
-    { month: 'Sep', revenue: 78000, bookings: 112 },
-    { month: 'Oct', revenue: 92400, bookings: 129 }
+    { month: 'May', revenue: 4200000, bookings: 64 },
+    { month: 'Jun', revenue: 6800000, bookings: 98 },
+    { month: 'Jul', revenue: 9500000, bookings: 135 },
+    { month: 'Aug', revenue: 11000000, bookings: 158 },
+    { month: 'Sep', revenue: 7800000, bookings: 112 },
+    { month: 'Oct', revenue: totalRevenue > 0 ? totalRevenue : 9240000, bookings: 129 },
   ];
 
   const categoryShareData = [
-    { name: 'Presidential', value: 35, color: '#fef08a' },
-    { name: 'Ocean View', value: 28, color: '#65a30d' },
-    { name: 'Executive', value: 20, color: '#556b2f' },
-    { name: 'Deluxe King', value: 12, color: '#eab308' },
-    { name: 'Family Villa', value: 5, color: '#a3b18a' }
+    { name: 'Presidential Suites', value: 38, color: '#b58d53' },
+    { name: 'Ocean & Lake Villas', value: 28, color: '#9e7740' },
+    { name: 'Executive Suites', value: 20, color: '#2b2b2b' },
+    { name: 'Deluxe Havelis', value: 14, color: '#737373' },
   ];
 
   const occupancyTrendData = [
-    { day: 'Mon', rate: 62 },
-    { day: 'Tue', rate: 68 },
-    { day: 'Wed', rate: 75 },
-    { day: 'Thu', rate: 84 },
+    { day: 'Mon', rate: 68 },
+    { day: 'Tue', rate: 74 },
+    { day: 'Wed', rate: 82 },
+    { day: 'Thu', rate: 88 },
     { day: 'Fri', rate: 96 },
     { day: 'Sat', rate: 98 },
-    { day: 'Sun', rate: 88 }
+    { day: 'Sun', rate: 75 },
   ];
 
   const handleAddUserSubmit = (e) => {
@@ -112,19 +111,21 @@ export const AdminDashboardPage = () => {
       addUser({
         name: newUserName,
         email: newUserEmail,
-        role: newUserRole
+        role: newUserRole,
       })
     );
 
     dispatch(
       addAuditLog({
-        user: `${currentUser?.name} (Admin)`,
-        action: 'New User Account Provisioned',
-        details: `Created account for ${newUserName} with role ${newUserRole.toUpperCase()}.`
+        user: `${currentUser?.name || 'Administrator'}`,
+        action: 'User Account Created',
+        details: `Created new account for ${newUserName} with role '${newUserRole}'.`,
       })
     );
 
-    toast.success(`User ${newUserName} added with ${newUserRole.toUpperCase()} permissions.`);
+    toast.success(`User ${newUserName} added successfully.`);
+    setNewUserName('');
+    setNewUserEmail('');
     setShowAddUserModal(false);
   };
 
@@ -136,156 +137,134 @@ export const AdminDashboardPage = () => {
         taxRatePercent: Number(taxRate),
         resortFeePerNight: Number(resortFee),
         currency,
-        maintenanceMode
+        maintenanceMode,
       })
     );
-
-    dispatch(
-      addAuditLog({
-        user: `${currentUser?.name} (Admin)`,
-        action: 'System Platform Settings Modified',
-        details: `Updated tax rate to ${taxRate}%, resort fee to $${resortFee}, currency to ${currency}.`
-      })
-    );
-
-    toast.success('Platform configurations saved successfully.');
-  };
-
-  const handleExportCSV = () => {
-    toast.success('Exporting Bookings Master Ledger to CSV format...');
+    toast.success('Platform Governance Configuration updated.');
   };
 
   return (
-    <div className="admin-dashboard-page py-5" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div style={{ backgroundColor: 'var(--bg-body)' }} className="py-5">
       <div className="container py-2">
-        {/* Header */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        {/* Admin Header */}
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
           <div>
-            <div className="d-flex align-items-center gap-2 mb-1">
-              <span className="badge bg-danger-subtle text-danger border border-danger px-2 py-1 small fw-bold">
-                EXECUTIVE LEVEL ACCESS
-              </span>
-              <span className="text-muted small">&bull; General Management Control Center</span>
-            </div>
-            <h2 className="font-serif fw-bold mb-0">HotelPro Executive Administration</h2>
-            <p className="text-muted small mb-0">Financial analytics, user access control, payment auditing, and platform governance.</p>
+            <div className="eyebrow-kicker mb-1">EXECUTIVE GOVERNANCE & ANALYTICS</div>
+            <h1 className="display-6 font-serif fw-bold text-main m-0">
+              Lumière Indian Palaces Master Dashboard
+            </h1>
+            <p className="text-secondary small mt-1 mb-0">
+              Real-time Indian Rupee (INR ₹) ledger, occupancy telemetry, user elevation, and GST compliance.
+            </p>
           </div>
 
-          <div className="d-flex gap-2">
-            <button onClick={handleExportCSV} className="btn btn-secondary-custom btn-sm d-flex align-items-center gap-1">
-              <Download size={15} /> Export Reports
-            </button>
-            <button onClick={() => setShowAddUserModal(true)} className="btn btn-gold btn-sm d-flex align-items-center gap-1">
-              <Plus size={15} /> Add User
-            </button>
+          <div className="d-flex align-items-center gap-2">
+            <span className="badge-clean">
+              <CheckCircle size={14} className="me-1 inline" /> Ledger Synchronized
+            </span>
+            <span className="text-muted small">
+              GSTIN: 27AAACL1987K1Z9
+            </span>
           </div>
         </div>
 
-        {/* 4 Executive KPI Cards */}
+        {/* Real-Time KPIs in INR */}
         <div className="row g-3 mb-4">
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--gold-50)' }}>
-                <DollarSign size={22} className="text-warning" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif text-warning">${totalRevenue.toLocaleString()}</div>
-                <div className="text-muted small">Total Bookings Revenue</div>
+                <div className="stat-metric-title">Gross Revenue (INR)</div>
+                <div className="stat-metric-val" style={{ color: 'var(--accent-gold)' }}>
+                  ₹ {(totalRevenue).toLocaleString('en-IN')}
+                </div>
+                <span className="text-muted small">Settled reservations</span>
               </div>
+              <TrendingUp size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
 
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--info-bg)' }}>
-                <Activity size={22} className="text-info" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">{occupancyPercent}%</div>
-                <div className="text-muted small">Average Occupancy Rate</div>
+                <div className="stat-metric-title">Average Occupancy</div>
+                <div className="stat-metric-val">{occupancyPercent}%</div>
+                <span className="text-muted small">{occupiedCount} of {rooms.length} suites active</span>
               </div>
+              <Activity size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
 
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--success-bg)' }}>
-                <TrendingUp size={22} className="text-success" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">${adr}</div>
-                <div className="text-muted small">ADR (Average Daily Rate)</div>
+                <div className="stat-metric-title">ADR (Average Daily Rate)</div>
+                <div className="stat-metric-val">
+                  ₹ {adr.toLocaleString('en-IN')}
+                </div>
+                <span className="text-muted small">Tariff per night</span>
               </div>
+              <Sparkles size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
 
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--warning-bg)' }}>
-                <Sparkles size={22} className="text-warning" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">${revpar}</div>
-                <div className="text-muted small">RevPAR (Rev per Avail Room)</div>
+                <div className="stat-metric-title">RevPAR</div>
+                <div className="stat-metric-val">
+                  ₹ {revpar.toLocaleString('en-IN')}
+                </div>
+                <span className="text-muted small">Revenue per available suite</span>
               </div>
+              <ShieldCheck size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="tabs-luxury mb-4">
-          <button
-            onClick={() => setActiveTab('analytics')}
-            className={`tab-btn ${activeTab === 'analytics' ? 'active' : ''}`}
-          >
-            <TrendingUp size={16} /> Financial Analytics & Recharts
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-          >
-            <Users size={16} /> User & Role Management ({usersList.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('bookings')}
-            className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}
-          >
-            <Calendar size={16} /> Booking Monitoring ({bookings.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('payments')}
-            className={`tab-btn ${activeTab === 'payments' ? 'active' : ''}`}
-          >
-            <CreditCard size={16} /> Payment Tracking
-          </button>
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-          >
-            <ShieldCheck size={16} /> Security Audit Logs ({auditLogs.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('config')}
-            className={`tab-btn ${activeTab === 'config' ? 'active' : ''}`}
-          >
-            <Sliders size={16} /> Platform Configuration
-          </button>
+        <div className="d-flex gap-2 mb-4 border-bottom pb-2 overflow-x-auto">
+          {[
+            { id: 'analytics', label: 'Financial Analytics & Charts', icon: <TrendingUp size={15} /> },
+            { id: 'users', label: `Users & Roles (${usersList.length})`, icon: <Users size={15} /> },
+            { id: 'bookings', label: `Master Ledger (${bookings.length})`, icon: <Calendar size={15} /> },
+            { id: 'security', label: `Audit Trail (${auditLogs.length})`, icon: <ShieldCheck size={15} /> },
+            { id: 'config', label: 'GST & Governance Config', icon: <Sliders size={15} /> },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                backgroundColor: activeTab === tab.id ? 'var(--btn-dark)' : 'transparent',
+                color: activeTab === tab.id ? '#ffffff' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '8px 20px',
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* TAB 1: System Reports & Recharts Analytics */}
+        {/* TAB 1: Analytics & Recharts */}
         {activeTab === 'analytics' && (
-          <div className="row g-4">
-            {/* Revenue Trend Area Chart */}
+          <div className="row g-4 mb-4">
+            {/* Monthly Revenue Area Chart */}
             <div className="col-lg-8">
-              <div className="card-luxury p-4 h-100">
+              <div className="luxury-card p-4 h-100">
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div>
-                    <h5 className="font-serif fw-bold mb-0">Monthly Revenue Performance</h5>
-                    <p className="text-muted small mb-0">Historical gross revenue trends (USD)</p>
+                    <h4 className="font-serif fw-bold text-main m-0">Monthly Revenue Performance</h4>
+                    <p className="text-muted small mb-0">Historical gross revenue trends (INR ₹)</p>
                   </div>
-                  <span className="badge bg-success-subtle text-success border border-success">
-                    +24.6% vs Last Quarter
-                  </span>
+                  <span className="badge-clean">+28.4% vs Previous Quarter</span>
                 </div>
 
                 <div style={{ width: '100%', height: 320 }}>
@@ -293,39 +272,54 @@ export const AdminDashboardPage = () => {
                     <AreaChart data={revenueMonthlyData}>
                       <defs>
                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#fef08a" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#556b2f" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#b58d53" stopOpacity={0.7} />
+                          <stop offset="95%" stopColor="#b58d53" stopOpacity={0.05} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="month" stroke="var(--text-muted)" />
-                      <YAxis stroke="var(--text-muted)" tickFormatter={(v) => `$${v / 1000}k`} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
-                        formatter={(val) => [`$${val.toLocaleString()}`, 'Gross Revenue']}
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e9e5dd" />
+                      <XAxis dataKey="month" stroke="#8e8e86" />
+                      <YAxis
+                        stroke="#8e8e86"
+                        tickFormatter={(v) => `₹${(v / 100000).toFixed(0)}L`}
                       />
-                      <Area type="monotone" dataKey="revenue" stroke="#fef08a" fillOpacity={1} fill="url(#colorRev)" strokeWidth={2.5} />
+                      <Tooltip
+                        formatter={(value) => [`₹ ${Number(value).toLocaleString('en-IN')}`, 'Gross Revenue']}
+                        contentStyle={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e9e5dd',
+                          borderRadius: '8px',
+                          boxShadow: 'var(--shadow-card)',
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#b58d53"
+                        strokeWidth={2.5}
+                        fillOpacity={1}
+                        fill="url(#colorRev)"
+                      />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            {/* Revenue Share Pie Chart */}
+            {/* Suite Category Revenue Share Donut Chart */}
             <div className="col-lg-4">
-              <div className="card-luxury p-4 h-100">
-                <h5 className="font-serif fw-bold mb-1">Revenue by Suite Class</h5>
-                <p className="text-muted small mb-3">Category revenue breakdown</p>
+              <div className="luxury-card p-4 h-100">
+                <h4 className="font-serif fw-bold text-main fs-5 mb-1">Palace Category Contribution</h4>
+                <p className="text-muted small mb-3">Revenue percentage by suite tier</p>
 
-                <div style={{ width: '100%', height: 220 }}>
+                <div style={{ width: '100%', height: 240 }}>
                   <ResponsiveContainer>
                     <PieChart>
                       <Pie
                         data={categoryShareData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={55}
-                        outerRadius={85}
+                        innerRadius={65}
+                        outerRadius={95}
                         paddingAngle={4}
                         dataKey="value"
                       >
@@ -333,119 +327,92 @@ export const AdminDashboardPage = () => {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }} />
+                      <Tooltip formatter={(value) => [`${value}%`, 'Revenue Share']} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
 
-                <div className="d-flex flex-column gap-1 pt-2 border-top small text-muted">
-                  {categoryShareData.map((cat, idx) => (
-                    <div key={idx} className="d-flex justify-content-between align-items-center">
+                <div className="d-flex flex-column gap-2 mt-2">
+                  {categoryShareData.map((cat, i) => (
+                    <div key={i} className="d-flex align-items-center justify-content-between small">
                       <div className="d-flex align-items-center gap-2">
-                        <span className="rounded-circle" style={{ width: '8px', height: '8px', backgroundColor: cat.color }} />
-                        <span>{cat.name}</span>
+                        <span
+                          className="d-inline-block rounded-circle"
+                          style={{ width: '10px', height: '10px', backgroundColor: cat.color }}
+                        />
+                        <span className="text-secondary">{cat.name}</span>
                       </div>
-                      <span className="fw-semibold">{cat.value}%</span>
+                      <span className="fw-bold text-main">{cat.value}%</span>
                     </div>
                   ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Occupancy Trend Line Chart */}
-            <div className="col-12">
-              <div className="card-luxury p-4">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div>
-                    <h5 className="font-serif fw-bold mb-0">Weekly Occupancy Rate Trends</h5>
-                    <p className="text-muted small mb-0">Percentage of rooms occupied throughout current week</p>
-                  </div>
-                  <span className="badge bg-warning text-dark fw-bold">Weekend Peak: 98%</span>
-                </div>
-
-                <div style={{ width: '100%', height: 220 }}>
-                  <ResponsiveContainer>
-                    <LineChart data={occupancyTrendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-                      <XAxis dataKey="day" stroke="var(--text-muted)" />
-                      <YAxis stroke="var(--text-muted)" domain={[50, 100]} unit="%" />
-                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)' }} />
-                      <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} dot={{ r: 5, fill: '#10b981' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: User & Role Management */}
+        {/* TAB 2: Users Management */}
         {activeTab === 'users' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="luxury-card p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
               <div>
-                <h5 className="font-serif fw-bold mb-0">Registered Users & Permissions</h5>
-                <p className="text-muted small mb-0">Manage Guests, Staff, and Administrators with granular role control.</p>
+                <h3 className="font-serif fw-bold text-main fs-4 m-0">Master User Directory & Roles</h3>
+                <p className="text-muted small m-0">Promote or adjust system roles across Indian residents, concierges, and administrators.</p>
               </div>
-              <button onClick={() => setShowAddUserModal(true)} className="btn btn-gold btn-sm">
-                <Plus size={14} /> Add User
+              <button
+                onClick={() => setShowAddUserModal(true)}
+                className="pill-btn-dark py-2 px-3"
+                style={{ fontSize: '0.84rem' }}
+              >
+                <Plus size={15} /> Add Resident Account
               </button>
             </div>
 
-            <div className="table-luxury-wrapper">
-              <table className="table-luxury">
+            <div className="table-responsive">
+              <table className="luxury-table">
                 <thead>
                   <tr>
-                    <th>User Profile</th>
-                    <th>Email</th>
-                    <th>Role Level</th>
-                    <th>Account Status</th>
-                    <th>Member Since</th>
+                    <th>User</th>
+                    <th>Email Address</th>
+                    <th>System Role</th>
+                    <th>Privilege Status</th>
                     <th className="text-end">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usersList.map((user) => (
                     <tr key={user.id}>
+                      <td className="fw-semibold text-main">{user.name}</td>
+                      <td className="text-muted">{user.email}</td>
                       <td>
-                        <div className="fw-semibold">{user.name}</div>
-                        <span className="text-muted small">{user.id}</span>
-                      </td>
-                      <td>{user.email}</td>
-                      <td>
-                        <select
-                          className="input-luxury py-1 px-2 small"
-                          style={{ width: 'auto', fontSize: '0.8rem' }}
-                          value={user.role}
-                          onChange={(e) => {
-                            dispatch(changeUserRole({ userId: user.id, newRole: e.target.value }));
-                            toast.success(`Role for ${user.name} changed to ${e.target.value.toUpperCase()}.`);
+                        <span
+                          className="badge rounded-pill"
+                          style={{
+                            backgroundColor: user.role === 'admin' ? '#181818' : user.role === 'staff' ? 'var(--accent-gold-light)' : 'var(--bg-surface-subtle)',
+                            color: user.role === 'admin' ? '#ffffff' : user.role === 'staff' ? 'var(--accent-gold)' : 'var(--text-main)',
+                            border: '1px solid var(--border-subtle)',
                           }}
                         >
-                          <option value="guest">Guest</option>
-                          <option value="staff">Staff</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </td>
-                      <td>
-                        <span className={`badge ${user.status === 'Active' ? 'badge-clean' : 'badge-cancelled'}`}>
-                          {user.status}
+                          {user.role?.toUpperCase()}
                         </span>
                       </td>
                       <td>
-                        <span className="small text-muted">{user.joined}</span>
+                        <span className="badge-clean">Active</span>
                       </td>
                       <td className="text-end">
-                        <button
-                          onClick={() => {
-                            dispatch(toggleUserStatus(user.id));
-                            toast.info(`Status toggled for ${user.name}.`);
+                        <select
+                          value={user.role}
+                          onChange={(e) => {
+                            dispatch(changeUserRole({ userId: user.id, role: e.target.value }));
+                            toast.success(`Role for ${user.name} updated to ${e.target.value}.`);
                           }}
-                          className={`btn btn-sm ${user.status === 'Active' ? 'btn-outline-danger' : 'btn-outline-success'} py-1`}
-                          style={{ fontSize: '0.75rem' }}
+                          className="form-select form-select-sm rounded-pill d-inline-block w-auto"
+                          style={{ fontSize: '0.78rem' }}
                         >
-                          {user.status === 'Active' ? 'Suspend' : 'Activate'}
-                        </button>
+                          <option value="guest">Guest</option>
+                          <option value="staff">Staff Concierge</option>
+                          <option value="admin">Administrator</option>
+                        </select>
                       </td>
                     </tr>
                   ))}
@@ -455,67 +422,46 @@ export const AdminDashboardPage = () => {
           </div>
         )}
 
-        {/* TAB 3: Global Master Booking Monitoring */}
+        {/* TAB 3: Master Ledger */}
         {activeTab === 'bookings' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h5 className="font-serif fw-bold mb-0">Master Bookings Ledger</h5>
-                <p className="text-muted small mb-0">Comprehensive tracking of all property bookings and reservations.</p>
-              </div>
-              <button onClick={handleExportCSV} className="btn btn-secondary-custom btn-sm">
-                <FileSpreadsheet size={14} /> Export Ledger CSV
-              </button>
-            </div>
-
-            <div className="table-luxury-wrapper">
-              <table className="table-luxury">
+          <div className="luxury-card p-4">
+            <h3 className="font-serif fw-bold text-main fs-4 mb-3">Master Reservations Ledger</h3>
+            <div className="table-responsive">
+              <table className="luxury-table">
                 <thead>
                   <tr>
-                    <th>Ref ID</th>
-                    <th>Guest</th>
+                    <th>Ref Code</th>
+                    <th>Resident</th>
                     <th>Suite</th>
-                    <th>Dates</th>
-                    <th>Payment</th>
+                    <th>Check In / Out</th>
+                    <th>Total Settled</th>
                     <th>Status</th>
-                    <th>Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {bookings.map((b) => (
-                    <tr key={b.id}>
+                    <tr key={b.id || b.bookingReference}>
+                      <td className="fw-bold font-serif">{b.bookingReference || b.id}</td>
                       <td>
-                        <strong className="text-warning">{b.id}</strong>
+                        <div className="fw-semibold text-main">{b.guestName}</div>
+                        <span className="text-muted small">{b.guestEmail}</span>
                       </td>
                       <td>
-                        <div className="fw-semibold">{b.guestName}</div>
-                        <div className="text-muted small">{b.guestEmail}</div>
+                        <div className="fw-semibold text-main">{b.roomTitle || b.roomName}</div>
+                        <span className="text-muted small">Suite #{b.roomNumber}</span>
                       </td>
                       <td>
-                        <div>{b.roomName}</div>
-                        <span className="badge bg-dark border border-secondary text-light">
-                          Room #{b.roomNumber}
-                        </span>
+                        <div className="small">{b.checkIn} &rarr; {b.checkOut}</div>
+                        <span className="text-muted small">{b.nights || 2} nights</span>
+                      </td>
+                      <td className="fw-bold font-serif" style={{ color: 'var(--accent-gold)' }}>
+                        ₹ {(b.totalAmount || 38997).toLocaleString('en-IN')}
                       </td>
                       <td>
-                        <span className="small">{b.checkIn} &rarr; {b.checkOut}</span>
-                      </td>
-                      <td>
-                        <span className="badge badge-paid">{b.paymentStatus}</span>
-                        <div className="text-muted small" style={{ fontSize: '0.7rem' }}>{b.paymentMethod}</div>
-                      </td>
-                      <td>
-                        <span className={`badge ${
-                          b.bookingStatus === 'Confirmed' ? 'badge-confirmed' :
-                          b.bookingStatus === 'Checked-In' ? 'badge-inspected' :
-                          b.bookingStatus === 'Checked-Out' ? 'badge-clean' : 'badge-cancelled'
-                        }`}>
+                        <span className={b.bookingStatus === 'Cancelled' ? 'badge-dirty' : 'badge-clean'}>
                           {b.bookingStatus}
                         </span>
                       </td>
-                      <td>
-                        <div className="fw-bold font-serif text-warning">${b.totalAmount}</div>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -524,56 +470,31 @@ export const AdminDashboardPage = () => {
           </div>
         )}
 
-        {/* TAB 4: Payment Tracking */}
-        {activeTab === 'payments' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h5 className="font-serif fw-bold mb-0">Payment Transactions & Audits</h5>
-                <p className="text-muted small mb-0">Real-time payment gateway logs (Stripe & Razorpay).</p>
-              </div>
-              <span className="badge bg-success-subtle text-success border border-success">
-                Gateway Health: 100% Operational
-              </span>
-            </div>
-
-            <div className="table-luxury-wrapper">
-              <table className="table-luxury">
+        {/* TAB 4: Audit Trail */}
+        {activeTab === 'security' && (
+          <div className="luxury-card p-4">
+            <h3 className="font-serif fw-bold text-main fs-4 mb-3">Security & Compliance Audit Trail</h3>
+            <div className="table-responsive">
+              <table className="luxury-table">
                 <thead>
                   <tr>
-                    <th>Transaction Ref</th>
-                    <th>Booking Ref</th>
-                    <th>Guest Name</th>
-                    <th>Gateway Provider</th>
-                    <th>Gross Amount</th>
-                    <th>Status</th>
+                    <th>Timestamp</th>
+                    <th>Principal Operator</th>
+                    <th>Action</th>
+                    <th>Event Details</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {bookings.map((b, idx) => (
-                    <tr key={idx}>
+                  {auditLogs.map((log) => (
+                    <tr key={log.id}>
+                      <td className="small text-muted">{log.timestamp}</td>
+                      <td className="fw-semibold text-main small">{log.user}</td>
                       <td>
-                        <span className="font-mono small text-muted">
-                          txn_{Math.random().toString(36).substring(2, 10)}
+                        <span className="badge rounded-pill bg-light border text-dark small">
+                          {log.action}
                         </span>
                       </td>
-                      <td>
-                        <strong className="text-warning">{b.id}</strong>
-                      </td>
-                      <td>{b.guestName}</td>
-                      <td>
-                        <span className="badge bg-secondary-subtle text-muted">
-                          {b.paymentMethod || 'Stripe Gateway'}
-                        </span>
-                      </td>
-                      <td>
-                        <strong className="text-warning font-serif">${b.totalAmount}</strong>
-                      </td>
-                      <td>
-                        <span className={`badge ${b.paymentStatus === 'Paid' ? 'badge-paid' : 'badge-refunded'}`}>
-                          {b.paymentStatus}
-                        </span>
-                      </td>
+                      <td className="small text-secondary">{log.details}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -582,178 +503,141 @@ export const AdminDashboardPage = () => {
           </div>
         )}
 
-        {/* TAB 5: Security Audit Logs */}
-        {activeTab === 'security' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h5 className="font-serif fw-bold mb-0">Real-Time Security & System Audit Trail</h5>
-                <p className="text-muted small mb-0">Immutable tracking of operator actions, pricing overrides, and authentication events.</p>
-              </div>
-              <span className="badge bg-dark border border-secondary text-light">
-                <Lock size={12} className="me-1 inline" /> Audit Logging Active
-              </span>
-            </div>
-
-            <div className="d-flex flex-column gap-2">
-              {auditLogs.map((log) => (
-                <div key={log.id} className="p-3 rounded border" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <div className="d-flex align-items-center gap-2">
-                      <ShieldCheck size={16} className="text-warning" />
-                      <strong className="small">{log.action}</strong>
-                      <span className="badge bg-secondary-subtle text-muted" style={{ fontSize: '0.7rem' }}>
-                        {log.user}
-                      </span>
-                    </div>
-                    <span className="text-muted small font-mono" style={{ fontSize: '0.75rem' }}>
-                      {log.timestamp}
-                    </span>
-                  </div>
-                  <p className="text-muted small mb-0" style={{ fontSize: '0.85rem' }}>
-                    {log.details}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* TAB 6: Platform Configuration */}
+        {/* TAB 5: Global Hotel Config */}
         {activeTab === 'config' && (
-          <div className="card-luxury p-4">
-            <h5 className="font-serif fw-bold mb-3 text-warning">Global Platform Governance</h5>
+          <div className="luxury-card p-4" style={{ maxWidth: '780px', margin: '0 auto' }}>
+            <h3 className="font-serif fw-bold text-main fs-4 mb-2">Platform Governance & GST Configuration</h3>
+            <p className="text-secondary small mb-4">
+              Configure Indian luxury hospitality tax slabs, heritage conservation fees, and operational state.
+            </p>
+
             <form onSubmit={handleSaveConfig}>
               <div className="row g-3 mb-4">
-                <div className="col-md-6">
-                  <label className="form-label small text-muted">Hotel & Resort Brand Name</label>
+                <div className="col-12">
+                  <label className="form-label small fw-semibold text-muted">Brand Resort Name</label>
                   <input
                     type="text"
-                    className="input-luxury"
+                    className="form-control rounded-3"
                     value={hotelName}
                     onChange={(e) => setHotelName(e.target.value)}
-                    required
                   />
                 </div>
-
                 <div className="col-md-6">
-                  <label className="form-label small text-muted">Base Operating Currency</label>
-                  <select
-                    className="input-luxury"
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                  >
-                    <option value="USD ($)">USD ($) - United States Dollar</option>
-                    <option value="EUR (€)">EUR (€) - Eurozone</option>
-                    <option value="GBP (£)">GBP (£) - British Pound</option>
-                    <option value="INR (₹)">INR (₹) - Indian Rupee</option>
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label small text-muted">Government Tourism Tax Rate (%)</label>
+                  <label className="form-label small fw-semibold text-muted">GST Tax Slab (%)</label>
                   <input
                     type="number"
-                    className="input-luxury"
+                    className="form-control rounded-3"
                     value={taxRate}
                     onChange={(e) => setTaxRate(e.target.value)}
-                    required
                   />
+                  <span className="text-muted small">Standard Indian Luxury Hotel GST is 18%.</span>
                 </div>
-
                 <div className="col-md-6">
-                  <label className="form-label small text-muted">Daily Resort & Wellness Fee ($)</label>
+                  <label className="form-label small fw-semibold text-muted">Heritage Fee / Night (₹)</label>
                   <input
                     type="number"
-                    className="input-luxury"
+                    className="form-control rounded-3"
                     value={resortFee}
                     onChange={(e) => setResortFee(e.target.value)}
-                    required
                   />
                 </div>
-
-                <div className="col-12">
-                  <div className="form-check form-switch mt-2">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id="maintSwitch"
-                      checked={maintenanceMode}
-                      onChange={(e) => setMaintenanceMode(e.target.checked)}
-                    />
-                    <label className="form-check-label fw-semibold small text-muted cursor-pointer" htmlFor="maintSwitch">
-                      Enable Emergency Platform Maintenance Mode
-                    </label>
-                  </div>
+                <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted">Primary Currency</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="form-control rounded-3"
+                    value={currency}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted">GSTIN Registration</label>
+                  <input
+                    type="text"
+                    disabled
+                    className="form-control rounded-3"
+                    value="27AAACL1987K1Z9"
+                  />
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-gold">
-                Save Platform Governance Settings
-              </button>
+              <div className="d-flex justify-content-end">
+                <button type="submit" className="pill-btn-dark py-2 px-4">
+                  Save Governance Settings
+                </button>
+              </div>
             </form>
           </div>
         )}
       </div>
 
-      {/* Modal: Add User */}
+      {/* Add User Modal */}
       {showAddUserModal && (
-        <div className="modal-overlay" onClick={() => setShowAddUserModal(false)}>
-          <div className="modal-content-luxury p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-              <div>
-                <h4 className="font-serif text-warning mb-0">Provision New Account</h4>
-                <p className="text-muted small mb-0">Create credentials and assign access role</p>
-              </div>
-              <button className="btn btn-sm btn-link text-muted p-1" onClick={() => setShowAddUserModal(false)}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: 1060,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div className="luxury-card p-4" style={{ maxWidth: '480px', width: '100%' }}>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h4 className="font-serif fw-bold text-main fs-5 m-0">Add New System Account</h4>
+              <button onClick={() => setShowAddUserModal(false)} className="btn btn-sm btn-link text-muted p-0">
                 <X size={20} />
               </button>
             </div>
-
             <form onSubmit={handleAddUserSubmit}>
               <div className="mb-3">
-                <label className="form-label small text-muted">Full Legal Name</label>
+                <label className="form-label small text-muted">Full Name</label>
                 <input
                   type="text"
-                  className="input-luxury"
-                  placeholder="e.g. Countess Beatrice Dupont"
+                  className="form-control rounded-3"
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
-                  required
+                  placeholder="e.g. Vikramaditya Singhania"
                 />
               </div>
-
               <div className="mb-3">
                 <label className="form-label small text-muted">Email Address</label>
                 <input
                   type="email"
-                  className="input-luxury"
-                  placeholder="name@organization.com"
+                  className="form-control rounded-3"
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
-                  required
+                  placeholder="e.g. resident@singhania.com"
                 />
               </div>
-
               <div className="mb-4">
-                <label className="form-label small text-muted">Role Permission</label>
+                <label className="form-label small text-muted">Initial Role</label>
                 <select
-                  className="input-luxury"
                   value={newUserRole}
                   onChange={(e) => setNewUserRole(e.target.value)}
+                  className="form-select rounded-3"
                 >
-                  <option value="guest">Guest / Member</option>
-                  <option value="staff">Hotel Staff / Operations</option>
-                  <option value="admin">Administrator / Executive</option>
+                  <option value="guest">Resident Guest</option>
+                  <option value="staff">Staff Concierge</option>
+                  <option value="admin">Administrator</option>
                 </select>
               </div>
-
               <div className="d-flex justify-content-end gap-2">
-                <button type="button" onClick={() => setShowAddUserModal(false)} className="btn btn-secondary-custom">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className="pill-btn-outline py-2 px-3"
+                >
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-gold">
-                  Provision User
+                <button type="submit" className="pill-btn-dark py-2 px-4">
+                  Create User
                 </button>
               </div>
             </form>

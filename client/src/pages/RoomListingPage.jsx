@@ -16,11 +16,13 @@ import {
   Star,
   Users,
   Maximize2,
-  CheckCircle,
+  MapPin,
+  Heart,
   SlidersHorizontal,
   RotateCcw,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Check
 } from 'lucide-react';
 
 export const RoomListingPage = () => {
@@ -32,436 +34,440 @@ export const RoomListingPage = () => {
   const priceRange = useSelector((state) => state.rooms.priceRange);
   const sortBy = useSelector((state) => state.rooms.sortBy);
 
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
+  const [viewMode, setViewMode] = useState('grid');
+  const [selectedDestination, setSelectedDestination] = useState('All');
   const [capacityFilter, setCapacityFilter] = useState('All');
   const [availableOnly, setAvailableOnly] = useState(false);
-  const [selectedAmenity, setSelectedAmenity] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const [favorites, setFavorites] = useState(['SU-402', 'PH-101']);
 
-  const categories = ['All', 'Presidential', 'Ocean View', 'Executive Suite', 'Deluxe', 'Family Villa'];
-  const commonAmenities = ['All', 'High-Speed Wi-Fi 6', 'Panoramic Ocean View', 'Freestanding Soaking Tub', 'Butler On Demand', 'Private Sun Terrace'];
+  const destinations = ['All', 'Udaipur', 'Manali', 'Mumbai', 'Goa', 'Jaipur', 'Kerala'];
+  const categories = ['All', 'Presidential Suite', 'Executive Suite', 'Deluxe Room', 'Penthouse'];
+
+  const toggleFavorite = (id, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (favorites.includes(id)) {
+      setFavorites(favorites.filter((f) => f !== id));
+    } else {
+      setFavorites([...favorites, id]);
+    }
+  };
+
+  const handleInstantBook = (room, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dispatch(
+      startBooking({
+        room,
+        totalAmount: room.price || room.basePrice || 18500,
+        nights: 2,
+        guests: 2,
+      })
+    );
+    navigate('/booking');
+  };
 
   // Filter & Sort Logic
   const filteredRooms = useMemo(() => {
     return rooms.filter((room) => {
       // Category filter
-      if (selectedCategory !== 'All' && room.category !== selectedCategory) return false;
+      const roomType = room.type || room.category || '';
+      if (selectedCategory !== 'All' && !roomType.toLowerCase().includes(selectedCategory.toLowerCase())) {
+        return false;
+      }
+
+      // Destination filter
+      if (selectedDestination !== 'All') {
+        const dest = (room.destination || room.location || '').toLowerCase();
+        if (!dest.includes(selectedDestination.toLowerCase())) return false;
+      }
 
       // Search keyword
       if (searchTerm) {
         const query = searchTerm.toLowerCase();
-        const matchesName = room.name.toLowerCase().includes(query);
-        const matchesDesc = room.description.toLowerCase().includes(query);
-        const matchesCat = room.category.toLowerCase().includes(query);
-        if (!matchesName && !matchesDesc && !matchesCat) return false;
+        const matchesName = (room.title || room.name || '').toLowerCase().includes(query);
+        const matchesDesc = (room.description || '').toLowerCase().includes(query);
+        const matchesLoc = (room.destination || room.location || '').toLowerCase().includes(query);
+        if (!matchesName && !matchesDesc && !matchesLoc) return false;
       }
 
-      // Price range
-      if (room.price < priceRange[0] || room.price > priceRange[1]) return false;
-
-      // Capacity filter
-      if (capacityFilter !== 'All') {
-        const cap = Number(capacityFilter);
-        if (room.capacity < cap) return false;
+      // Guest Capacity
+      if (capacityFilter !== 'All' && room.capacity < Number(capacityFilter)) {
+        return false;
       }
 
-      // Availability filter
-      if (availableOnly && !room.isAvailable) return false;
-
-      // Amenity filter
-      if (selectedAmenity !== 'All' && !room.amenities.includes(selectedAmenity)) return false;
+      // Availability
+      if (availableOnly && !room.isAvailable) {
+        return false;
+      }
 
       return true;
     }).sort((a, b) => {
-      if (sortBy === 'price-asc') return a.price - b.price;
-      if (sortBy === 'price-desc') return b.price - a.price;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      return 0; // recommended
+      const priceA = a.price || a.basePrice || 0;
+      const priceB = b.price || b.basePrice || 0;
+      if (sortBy === 'price-asc') return priceA - priceB;
+      if (sortBy === 'price-desc') return priceB - priceA;
+      if (sortBy === 'rating') return (b.rating || 5) - (a.rating || 5);
+      return 0;
     });
-  }, [rooms, selectedCategory, searchTerm, priceRange, capacityFilter, availableOnly, selectedAmenity, sortBy]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredRooms.length / itemsPerPage) || 1;
-  const paginatedRooms = filteredRooms.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  }, [rooms, selectedCategory, selectedDestination, searchTerm, capacityFilter, availableOnly, sortBy]);
 
   const handleResetFilters = () => {
     dispatch(setSelectedCategory('All'));
     dispatch(setSearchTerm(''));
-    dispatch(setPriceRange([150, 1000]));
     dispatch(setSortBy('recommended'));
+    setSelectedDestination('All');
     setCapacityFilter('All');
     setAvailableOnly(false);
-    setSelectedAmenity('All');
-    setCurrentPage(1);
-  };
-
-  const handleInstantBook = (room) => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0];
-    dispatch(startBooking({
-      room: room,
-      checkIn: today,
-      checkOut: tomorrow,
-      nights: 2,
-      guests: Math.min(2, room.capacity),
-      totalAmount: room.price * 2
-    }));
-    navigate('/booking');
   };
 
   return (
-    <div className="room-listing-page py-5" style={{ backgroundColor: 'var(--bg-primary)' }}>
-      <div className="container py-2">
+    <div style={{ backgroundColor: 'var(--bg-body)' }} className="py-4">
+      <div className="container">
         {/* Page Header */}
-        <div className="mb-4 text-center text-md-start">
-          <div className="d-flex align-items-center gap-2 mb-1 justify-content-center justify-content-md-start">
-            <Sparkles size={16} className="text-warning" />
-            <span className="text-warning small text-uppercase fw-bold letter-spacing-1">Luxury Accommodations</span>
+        <div className="pt-3 pb-4">
+          <div className="eyebrow-kicker mb-2">CURATED COLLECTION · INDIA</div>
+          <div className="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
+            <div>
+              <h1 className="display-5 font-serif fw-bold text-main m-0">
+                Stays & Palatial Residences
+              </h1>
+              <p className="text-secondary mt-2 mb-0" style={{ maxWidth: '640px' }}>
+                Explore handpicked luxury palaces, private coastal villas, and Himalayan sanctuaries.
+                Rates are quoted in Indian Rupees (INR ₹) with all-inclusive five-star service.
+              </p>
+            </div>
+
+            {/* View Mode Toggle & Counter */}
+            <div className="d-flex align-items-center gap-3">
+              <span className="text-muted small fw-medium">
+                Showing <strong>{filteredRooms.length}</strong> residences
+              </span>
+              <div
+                className="d-inline-flex p-1 rounded-pill border"
+                style={{ backgroundColor: '#ffffff', borderColor: 'var(--border-subtle)' }}
+              >
+                <button
+                  onClick={() => setViewMode('grid')}
+                  style={{
+                    backgroundColor: viewMode === 'grid' ? 'var(--btn-dark)' : 'transparent',
+                    color: viewMode === 'grid' ? '#ffffff' : 'var(--text-muted)',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '6px 12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  title="Grid View"
+                >
+                  <Grid size={15} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  style={{
+                    backgroundColor: viewMode === 'list' ? 'var(--btn-dark)' : 'transparent',
+                    color: viewMode === 'list' ? '#ffffff' : 'var(--text-muted)',
+                    border: 'none',
+                    borderRadius: '9999px',
+                    padding: '6px 12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                  title="List View"
+                >
+                  <List size={15} />
+                </button>
+              </div>
+            </div>
           </div>
-          <h1 className="display-6 font-serif fw-bold mb-2">Suites, Penthouses & Private Villas</h1>
-          <p className="text-muted mb-0">Discover exceptional stays crafted with bespoke luxury, high-speed fiber, and serene coastal views.</p>
         </div>
 
-        {/* Category Pills Bar */}
-        <div className="d-flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => {
-                dispatch(setSelectedCategory(cat));
-                setCurrentPage(1);
-              }}
-              className={`btn btn-sm text-nowrap rounded-pill px-3 py-2 fw-semibold ${
-                selectedCategory === cat ? 'btn-gold' : 'btn-secondary-custom'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Filter Bar & Controls */}
-        <div className="card-luxury p-3 mb-4">
+        {/* ===================================================================
+            SEARCH & FILTER CONTROL BAR
+            =================================================================== */}
+        <div className="luxury-card mb-4 p-3 p-lg-4">
           <div className="row g-3 align-items-center">
             {/* Search Input */}
-            <div className="col-12 col-md-4">
-              <div className="position-relative">
+            <div className="col-12 col-md-5">
+              <div className="d-flex align-items-center gap-2 px-3 py-2 rounded-pill border" style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}>
+                <Search size={18} style={{ color: 'var(--accent-gold)' }} />
                 <input
                   type="text"
-                  className="input-luxury ps-5 py-2"
-                  placeholder="Search by suite name, feature or style..."
+                  placeholder="Search suites, locations (e.g. Udaipur, Manali, Mumbai)..."
                   value={searchTerm}
-                  onChange={(e) => {
-                    dispatch(setSearchTerm(e.target.value));
-                    setCurrentPage(1);
+                  onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    width: '100%',
+                    fontSize: '0.88rem',
+                    color: 'var(--text-main)',
                   }}
                 />
-                <Search size={16} className="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" />
               </div>
             </div>
 
-            {/* Price Filter */}
-            <div className="col-6 col-md-3">
-              <div className="d-flex justify-content-between text-muted small mb-1">
-                <span>Max Price:</span>
-                <span className="fw-bold text-warning">${priceRange[1]}/night</span>
-              </div>
-              <input
-                type="range"
-                className="form-range"
-                min="200"
-                max="1000"
-                step="50"
-                value={priceRange[1]}
-                onChange={(e) => dispatch(setPriceRange([150, Number(e.target.value)]))}
-              />
-            </div>
-
-            {/* Capacity Filter */}
+            {/* Destination Selector */}
             <div className="col-6 col-md-2">
               <select
-                className="input-luxury py-2"
-                value={capacityFilter}
-                onChange={(e) => {
-                  setCapacityFilter(e.target.value);
-                  setCurrentPage(1);
-                }}
+                value={selectedDestination}
+                onChange={(e) => setSelectedDestination(e.target.value)}
+                className="form-select rounded-pill"
+                style={{ fontSize: '0.85rem', borderColor: 'var(--border-subtle)', backgroundColor: 'var(--bg-surface-subtle)' }}
               >
-                <option value="All">All Capacities</option>
-                <option value="2">2+ Guests</option>
-                <option value="3">3+ Guests</option>
-                <option value="4">4+ Guests</option>
-                <option value="6">6+ Guests</option>
+                {destinations.map((d) => (
+                  <option key={d} value={d}>
+                    {d === 'All' ? 'All Destinations' : d}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {/* Sort Dropdown */}
+            {/* Category Selector */}
             <div className="col-6 col-md-2">
               <select
-                className="input-luxury py-2"
+                value={selectedCategory}
+                onChange={(e) => dispatch(setSelectedCategory(e.target.value))}
+                className="form-select rounded-pill"
+                style={{ fontSize: '0.85rem', borderColor: 'var(--border-subtle)', backgroundColor: 'var(--bg-surface-subtle)' }}
+              >
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c === 'All' ? 'All Categories' : c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort Selector */}
+            <div className="col-6 col-md-2">
+              <select
                 value={sortBy}
                 onChange={(e) => dispatch(setSortBy(e.target.value))}
+                className="form-select rounded-pill"
+                style={{ fontSize: '0.85rem', borderColor: 'var(--border-subtle)', backgroundColor: 'var(--bg-surface-subtle)' }}
               >
-                <option value="recommended">Sort: Recommended</option>
+                <option value="recommended">Featured First</option>
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
+                <option value="rating">Top Rated</option>
               </select>
             </div>
 
-            {/* View Grid / List Toggle & Reset */}
-            <div className="col-6 col-md-1 d-flex justify-content-end gap-1">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`btn btn-sm p-2 ${viewMode === 'grid' ? 'btn-gold' : 'btn-secondary-custom'}`}
-                title="Grid View"
-              >
-                <Grid size={16} />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`btn btn-sm p-2 ${viewMode === 'list' ? 'btn-gold' : 'btn-secondary-custom'}`}
-                title="List View"
-              >
-                <List size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Sub Filters: Available Only & Reset */}
-          <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
-            <div className="d-flex align-items-center gap-3">
-              <div className="form-check form-switch mb-0">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="availOnly"
-                  checked={availableOnly}
-                  onChange={(e) => setAvailableOnly(e.target.checked)}
-                />
-                <label className="form-check-label small text-muted cursor-pointer" htmlFor="availOnly">
-                  Show Available Rooms Only
-                </label>
-              </div>
-
-              <div className="d-flex align-items-center gap-1 small text-muted d-none d-sm-flex">
-                <span>Filter Amenity:</span>
-                <select
-                  className="input-luxury py-1 px-2 small"
-                  style={{ width: 'auto', fontSize: '0.8rem' }}
-                  value={selectedAmenity}
-                  onChange={(e) => setSelectedAmenity(e.target.value)}
-                >
-                  {commonAmenities.map(am => (
-                    <option key={am} value={am}>{am}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="d-flex align-items-center gap-2">
-              <span className="small text-muted">Showing <strong>{filteredRooms.length}</strong> suites</span>
+            {/* Reset Filters */}
+            <div className="col-6 col-md-1 text-end">
               <button
                 onClick={handleResetFilters}
-                className="btn btn-sm btn-link text-decoration-none text-muted p-0 d-flex align-items-center gap-1"
-                style={{ fontSize: '0.8rem' }}
+                className="btn btn-sm btn-outline-secondary rounded-pill w-100 d-flex align-items-center justify-content-center gap-1"
+                title="Reset all filters"
+                style={{ fontSize: '0.8rem', padding: '7px' }}
               >
-                <RotateCcw size={12} /> Reset
+                <RotateCcw size={14} />
+                <span className="d-none d-xl-inline">Reset</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Room Results Grid or List */}
+        {/* ===================================================================
+            ROOMS DISPLAY GRID / LIST (MATCHING REFERENCE AESTHETIC)
+            =================================================================== */}
         {filteredRooms.length === 0 ? (
-          <div className="text-center py-5 card-luxury p-5">
-            <SlidersHorizontal size={40} className="text-warning mb-3 opacity-60" />
-            <h4 className="font-serif fw-bold">No Suites Match Your Exact Criteria</h4>
-            <p className="text-muted small mb-4">Try widening your price range or resetting the category filter.</p>
-            <button onClick={handleResetFilters} className="btn btn-gold">
+          <div className="luxury-card text-center py-5 my-4">
+            <Sparkles size={40} style={{ color: 'var(--accent-gold)' }} className="mb-3" />
+            <h3 className="font-serif fw-bold fs-4">No Residences Match Your Filter</h3>
+            <p className="text-secondary small mb-4">
+              Try adjusting your destination or category criteria to discover available royal suites.
+            </p>
+            <button onClick={handleResetFilters} className="pill-btn-dark">
               Reset All Filters
             </button>
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="row g-4 mb-4">
-            {paginatedRooms.map((room) => (
-              <div className="col-lg-4 col-md-6" key={room.id}>
-                <div className="card-luxury h-100 d-flex flex-column overflow-hidden">
-                  {/* Image container */}
-                  <div className="position-relative overflow-hidden" style={{ height: '230px' }}>
-                    <img
-                      src={room.images[0]}
-                      alt={room.name}
-                      className="w-100 h-100 object-fit-cover"
-                    />
-                    <div className="position-absolute top-0 start-0 m-3 d-flex gap-2">
-                      <span className="badge bg-dark bg-opacity-75 text-warning border border-warning px-2 py-1 small">
-                        {room.category}
-                      </span>
-                      <span className={`badge ${
-                        room.status === 'Clean' ? 'badge-clean' :
-                        room.status === 'Inspected' ? 'badge-inspected' :
-                        room.status === 'Dirty' ? 'badge-dirty' : 'badge-out-of-order'
-                      }`}>
-                        {room.status}
-                      </span>
-                    </div>
+          /* Grid View (4 Columns on large screen matching reference) */
+          <div className="row g-4 mb-5">
+            {filteredRooms.map((room) => {
+              const displayTitle = room.title || room.name;
+              const displayLocation = room.destination || room.location || 'India';
+              const displayPrice = room.price || room.basePrice || 18500;
 
-                    <div className="position-absolute bottom-0 end-0 m-3">
-                      <span className="badge bg-dark bg-opacity-90 text-light px-3 py-2 fw-bold">
-                        ${room.price} <small className="text-muted fw-normal">/ night</small>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Body */}
-                  <div className="p-4 d-flex flex-column flex-grow-1">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <div className="d-flex align-items-center gap-1 text-warning small">
-                        <Star size={15} fill="#f59e0b" />
-                        <span className="fw-bold">{room.rating}</span>
-                        <span className="text-muted">({room.reviewsCount})</span>
-                      </div>
-                      <span className="text-muted small">Floor {room.floor} &bull; Room #{room.roomNumber}</span>
-                    </div>
-
-                    <h5 className="font-serif fw-bold mb-2">{room.name}</h5>
-                    <p className="text-muted small mb-3 flex-grow-1" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {room.description}
-                    </p>
-
-                    <div className="d-flex flex-wrap gap-1 mb-3">
-                      {room.amenities.slice(0, 3).map((am, idx) => (
-                        <span key={idx} className="badge bg-secondary-subtle text-muted" style={{ fontSize: '0.72rem' }}>
-                          {am}
-                        </span>
-                      ))}
-                      {room.amenities.length > 3 && (
-                        <span className="badge bg-secondary-subtle text-muted" style={{ fontSize: '0.72rem' }}>
-                          +{room.amenities.length - 3} more
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="d-flex gap-2 mt-auto">
-                      <Link to={`/rooms/${room.id}`} className="btn btn-secondary-custom flex-grow-1">
-                        Details
+              return (
+                <div key={room.id} className="col-12 col-md-6 col-lg-4 col-xl-3">
+                  <div className="stay-card">
+                    {/* Card Image */}
+                    <div className="stay-card-img-wrapper">
+                      <Link to={`/rooms/${room.id || room.roomNumber}`}>
+                        <img
+                          src={room.images[0] || 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80'}
+                          alt={displayTitle}
+                          className="stay-card-img"
+                          loading="lazy"
+                        />
                       </Link>
+
+                      {/* Wishlist Heart */}
                       <button
-                        onClick={() => handleInstantBook(room)}
-                        disabled={!room.isAvailable}
-                        className="btn btn-gold flex-grow-1"
+                        onClick={(e) => toggleFavorite(room.id, e)}
+                        className={`stay-card-heart-btn ${favorites.includes(room.id) ? 'active' : ''}`}
+                        title="Add to Wishlist"
                       >
-                        {room.isAvailable ? 'Instant Book' : 'Occupied'}
+                        <Heart size={16} fill={favorites.includes(room.id) ? '#e11d48' : 'none'} />
                       </button>
+
+                      {/* Room Badge */}
+                      <div className="stay-card-badge">
+                        {room.type || room.category || 'Luxury Suite'}
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="stay-card-body">
+                      {/* Location */}
+                      <div className="stay-card-location">
+                        <MapPin size={13} style={{ color: 'var(--accent-gold)' }} />
+                        <span>{displayLocation}</span>
+                      </div>
+
+                      {/* Title */}
+                      <Link to={`/rooms/${room.id || room.roomNumber}`} className="text-decoration-none">
+                        <h3 className="stay-card-title text-truncate" title={displayTitle}>
+                          {displayTitle}
+                        </h3>
+                      </Link>
+
+                      {/* Key Amenities */}
+                      <div className="d-flex align-items-center gap-3 text-muted small my-2">
+                        <span className="d-flex align-items-center gap-1">
+                          <Users size={13} /> {room.capacity} Guests
+                        </span>
+                        <span className="d-flex align-items-center gap-1">
+                          <Maximize2 size={13} /> {room.sizeSqFt || room.size || 850} sq ft
+                        </span>
+                      </div>
+
+                      {/* Footer: Rating, Price, Reserve Button */}
+                      <div className="stay-card-footer">
+                        <div className="stay-card-rating">
+                          <Star size={14} fill="#f59e0b" color="#f59e0b" />
+                          <span>{room.rating || 4.9}</span>
+                          <span className="stay-card-reviews">
+                            ({(room.reviewsCount || 1200) > 999 ? `${((room.reviewsCount || 1200)/1000).toFixed(1)}K` : room.reviewsCount})
+                          </span>
+                        </div>
+
+                        <div className="text-end">
+                          <span className="stay-card-price">
+                            ₹ {displayPrice.toLocaleString('en-IN')}
+                          </span>
+                          <span className="stay-card-price-unit"> / night</span>
+                        </div>
+                      </div>
+
+                      {/* Quick Reserve CTA */}
+                      <div className="pt-3">
+                        <button
+                          onClick={(e) => handleInstantBook(room, e)}
+                          className="pill-btn-dark w-100 py-2"
+                          style={{ fontSize: '0.82rem' }}
+                        >
+                          <span>Reserve Suite</span>
+                          <ArrowRight size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
-          /* List View */
-          <div className="d-flex flex-column gap-3 mb-4">
-            {paginatedRooms.map((room) => (
-              <div className="card-luxury p-3" key={room.id}>
-                <div className="row g-3 align-items-center">
-                  <div className="col-md-4 col-lg-3">
-                    <div className="rounded overflow-hidden position-relative" style={{ height: '180px' }}>
-                      <img
-                        src={room.images[0]}
-                        alt={room.name}
-                        className="w-100 h-100 object-fit-cover"
-                      />
-                      <span className="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-75 text-warning border border-warning small">
-                        {room.category}
-                      </span>
-                    </div>
-                  </div>
+          /* List View (Horizontal layout with spacious luxury) */
+          <div className="d-flex flex-column gap-4 mb-5">
+            {filteredRooms.map((room) => {
+              const displayTitle = room.title || room.name;
+              const displayLocation = room.destination || room.location || 'India';
+              const displayPrice = room.price || room.basePrice || 18500;
 
-                  <div className="col-md-5 col-lg-6">
-                    <div className="d-flex align-items-center gap-2 mb-1">
-                      <div className="d-flex align-items-center gap-1 text-warning small">
-                        <Star size={14} fill="#f59e0b" />
-                        <span className="fw-bold">{room.rating}</span>
-                        <span className="text-muted">({room.reviewsCount} reviews)</span>
+              return (
+                <div key={room.id} className="luxury-card p-3 p-lg-4">
+                  <div className="row g-4 align-items-center">
+                    <div className="col-12 col-md-4">
+                      <div className="position-relative rounded-4 overflow-hidden" style={{ height: '220px' }}>
+                        <img
+                          src={room.images[0]}
+                          alt={displayTitle}
+                          className="w-100 h-100"
+                          style={{ objectFit: 'cover' }}
+                        />
+                        <button
+                          onClick={(e) => toggleFavorite(room.id, e)}
+                          className={`stay-card-heart-btn ${favorites.includes(room.id) ? 'active' : ''}`}
+                        >
+                          <Heart size={16} fill={favorites.includes(room.id) ? '#e11d48' : 'none'} />
+                        </button>
                       </div>
-                      <span className="text-muted small">&bull; Floor {room.floor} &bull; Room #{room.roomNumber}</span>
-                      <span className={`badge ${
-                        room.status === 'Clean' ? 'badge-clean' :
-                        room.status === 'Inspected' ? 'badge-inspected' :
-                        room.status === 'Dirty' ? 'badge-dirty' : 'badge-out-of-order'
-                      }`}>
-                        {room.status}
-                      </span>
                     </div>
 
-                    <h5 className="font-serif fw-bold mb-1">{room.name}</h5>
-                    <p className="text-muted small mb-2">{room.description}</p>
-
-                    <div className="d-flex flex-wrap gap-2 text-muted small">
-                      <span><Users size={14} className="me-1 inline" />Max {room.capacity} Guests</span>
-                      <span>&bull;</span>
-                      <span><Maximize2 size={14} className="me-1 inline" />{room.sizeSqFt} sq ft</span>
-                      <span>&bull;</span>
-                      <span>{room.bedType}</span>
-                    </div>
-                  </div>
-
-                  <div className="col-md-3 col-lg-3 text-md-end border-start-md ps-md-3">
-                    <div className="fs-4 fw-bold text-warning font-serif mb-0">${room.price}</div>
-                    <div className="text-muted small mb-3">per night + taxes</div>
-
-                    <div className="d-flex flex-column gap-2">
-                      <button
-                        onClick={() => handleInstantBook(room)}
-                        disabled={!room.isAvailable}
-                        className="btn btn-gold w-100"
-                      >
-                        {room.isAvailable ? 'Instant Book' : 'Occupied'}
-                      </button>
-                      <Link to={`/rooms/${room.id}`} className="btn btn-secondary-custom w-100">
-                        View Details
+                    <div className="col-12 col-md-5">
+                      <div className="stay-card-location mb-1">
+                        <MapPin size={13} style={{ color: 'var(--accent-gold)' }} />
+                        <span>{displayLocation}</span>
+                      </div>
+                      <Link to={`/rooms/${room.id || room.roomNumber}`} className="text-decoration-none">
+                        <h3 className="font-serif fw-bold fs-4 text-main mb-2">{displayTitle}</h3>
                       </Link>
+                      <p className="text-secondary small mb-3 text-truncate-2">
+                        {room.description}
+                      </p>
+
+                      <div className="d-flex flex-wrap gap-2">
+                        {room.amenities.slice(0, 3).map((am, i) => (
+                          <span
+                            key={i}
+                            className="badge"
+                            style={{ backgroundColor: 'var(--bg-surface-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)', fontWeight: 500 }}
+                          >
+                            <Check size={11} className="me-1 inline" style={{ color: 'var(--accent-gold)' }} />
+                            {am}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="col-12 col-md-3 text-md-end border-top border-md-top-0 border-md-start pt-3 pt-md-0 ps-md-4">
+                      <div className="d-flex align-items-center justify-content-md-end gap-1 mb-2">
+                        <Star size={15} fill="#f59e0b" color="#f59e0b" />
+                        <span className="fw-bold">{room.rating || 4.9}</span>
+                        <span className="text-muted small">({room.reviewsCount || 1200} reviews)</span>
+                      </div>
+                      <div className="mb-3">
+                        <div className="fs-3 fw-bold text-main font-serif">
+                          ₹ {displayPrice.toLocaleString('en-IN')}
+                        </div>
+                        <span className="text-muted small">+ 18% Luxury GST & Wellness Fee</span>
+                      </div>
+                      <div className="d-flex flex-column gap-2">
+                        <button
+                          onClick={(e) => handleInstantBook(room, e)}
+                          className="pill-btn-dark py-2"
+                        >
+                          Book Stay
+                        </button>
+                        <Link
+                          to={`/rooms/${room.id || room.roomNumber}`}
+                          className="pill-btn-outline py-2 justify-content-center"
+                        >
+                          View Details
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="d-flex justify-content-center gap-2 mt-4">
-            <button
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="btn btn-sm btn-secondary-custom"
-            >
-              &larr; Previous
-            </button>
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`btn btn-sm ${currentPage === i + 1 ? 'btn-gold' : 'btn-secondary-custom'}`}
-                style={{ minWidth: '36px' }}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="btn btn-sm btn-secondary-custom"
-            >
-              Next &rarr;
-            </button>
+              );
+            })}
           </div>
         )}
       </div>

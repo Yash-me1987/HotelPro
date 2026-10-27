@@ -25,13 +25,13 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { staffRoster } from '../data/initialData';
 
 export const StaffDashboardPage = () => {
   const dispatch = useDispatch();
   const bookings = useSelector((state) => state.bookings.bookings);
   const rooms = useSelector((state) => state.rooms.rooms);
   const services = useSelector((state) => state.services.services);
-  const staffList = useSelector((state) => state.hotel.staffList);
   const { currentUser } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState('checkin'); // 'checkin' | 'checkout' | 'roomstatus' | 'housekeeping' | 'services'
@@ -40,96 +40,82 @@ export const StaffDashboardPage = () => {
 
   // Operational KPI calculations
   const expectedArrivals = bookings.filter((b) => b.bookingStatus === 'Confirmed');
-  const activeOccupants = bookings.filter((b) => b.bookingStatus === 'Checked-In');
+  const activeOccupants = bookings.filter((b) => b.bookingStatus === 'Checked-In' || b.bookingStatus === 'Checked In');
   const pendingHousekeeping = rooms.filter((r) => r.status === 'Dirty');
   const openServiceTickets = services.filter((s) => s.status !== 'Completed');
 
   // Handle Guest Check-in
   const handleCheckIn = (booking) => {
-    dispatch(checkInBooking(booking.id));
-    dispatch(updateRoomStatus({ roomId: booking.roomId, status: 'Inspected' }));
+    dispatch(checkInBooking(booking.id || booking.bookingReference));
+    dispatch(updateRoomStatus({ roomId: booking.roomNumber, status: 'Inspected' }));
     dispatch(
       addAuditLog({
         user: `${currentUser?.name || 'Front Desk Staff'}`,
-        action: 'Express Check-In Completed',
-        details: `Checked in guest ${booking.guestName} into Room #${booking.roomNumber}. Keycard issued.`
+        action: 'Express Check-In Authorized',
+        details: `Checked in guest ${booking.guestName} into Suite #${booking.roomNumber}. NFC Digital Pass emitted.`,
       })
     );
     dispatch(
       addNotification({
-        title: `Guest Checked In: ${booking.guestName}`,
-        message: `Assigned Room #${booking.roomNumber}. Digital mobile key activated.`,
-        type: 'booking'
+        title: `Resident Checked In: ${booking.guestName}`,
+        message: `Suite #${booking.roomNumber} is now occupied. Khansama welcome service dispatched.`,
+        category: 'booking',
       })
     );
-    toast.success(`Check-In complete for ${booking.guestName}! Room #${booking.roomNumber} is active.`);
+    toast.success(`Guest ${booking.guestName} checked into Suite #${booking.roomNumber}. Keycard issued.`);
   };
 
-  // Handle Guest Check-Out
+  // Handle Guest Check-out
   const handleCheckOut = (booking) => {
-    dispatch(checkOutBooking(booking.id));
-    dispatch(updateRoomStatus({ roomId: booking.roomId, status: 'Dirty' }));
+    dispatch(checkOutBooking(booking.id || booking.bookingReference));
+    dispatch(updateRoomStatus({ roomId: booking.roomNumber, status: 'Dirty' }));
     dispatch(
       addAuditLog({
         user: `${currentUser?.name || 'Front Desk Staff'}`,
-        action: 'Guest Check-Out Processed',
-        details: `Guest ${booking.guestName} checked out of Room #${booking.roomNumber}. Room queued for housekeeping.`
+        action: 'Guest Departure Checked Out',
+        details: `Checked out guest ${booking.guestName}. Suite #${booking.roomNumber} queued for housekeeping.`,
       })
     );
     dispatch(
       addNotification({
-        title: `Guest Departed: Room #${booking.roomNumber}`,
-        message: `${booking.guestName} has checked out. Room is marked as Dirty for housekeeping.`,
-        type: 'booking'
+        title: `Housekeeping Alert: Suite #${booking.roomNumber}`,
+        message: `Suite #${booking.roomNumber} vacated by ${booking.guestName}. Queued for full sanitation.`,
+        category: 'housekeeping',
       })
     );
-    toast.info(`Check-Out processed for ${booking.guestName}. Room #${booking.roomNumber} marked for cleaning.`);
+    toast.info(`Guest ${booking.guestName} checked out. Suite #${booking.roomNumber} queued for Housekeeping.`);
   };
 
-  // Handle Room Status Quick Change
   const handleStatusChange = (roomId, newStatus) => {
     dispatch(updateRoomStatus({ roomId, status: newStatus }));
-    dispatch(
-      addAuditLog({
-        user: `${currentUser?.name || 'Housekeeping'}`,
-        action: 'Room Status Changed',
-        details: `Room ${roomId} status changed to ${newStatus}.`
-      })
-    );
-    toast.success(`Room status updated to ${newStatus}.`);
+    toast.success(`Suite #${roomId} status changed to ${newStatus}.`);
   };
 
-  // Handle Service Request Status Change
-  const handleServiceStatusToggle = (serviceId, currentStatus) => {
-    const nextStatus =
-      currentStatus === 'Pending'
-        ? 'In Progress'
-        : currentStatus === 'In Progress'
-        ? 'Completed'
-        : 'Pending';
-
-    dispatch(updateServiceStatus({ id: serviceId, status: nextStatus }));
-    toast.success(`Service ticket status moved to: ${nextStatus}.`);
+  const handleServiceStatus = (id, newStatus) => {
+    dispatch(updateServiceStatus({ id, status: newStatus }));
+    toast.success(`Service ticket status updated to ${newStatus}.`);
   };
 
   return (
-    <div className="staff-dashboard py-5" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div style={{ backgroundColor: 'var(--bg-body)' }} className="py-5">
       <div className="container py-2">
-        {/* Operations Header */}
-        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        {/* Terminal Header */}
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
           <div>
-            <div className="d-flex align-items-center gap-2 mb-1">
-              <span className="badge bg-info-subtle text-info border border-info px-2 py-1 small">
-                FRONT OFFICE & OPERATIONS
-              </span>
-              <span className="text-muted small">&bull; Active Shift: Morning / Operational</span>
-            </div>
-            <h2 className="font-serif fw-bold mb-0">Hotel Staff Operations Terminal</h2>
-            <p className="text-muted small mb-0">Manage guest arrivals, express departures, room readiness, and service tickets.</p>
+            <div className="eyebrow-kicker mb-1">FRONT-OFFICE OPERATIONS TERMINAL</div>
+            <h1 className="display-6 font-serif fw-bold text-main m-0">
+              Palace Concierge & Housekeeping Control
+            </h1>
+            <p className="text-secondary small mt-1 mb-0">
+              Live Indian resort desk: arrivals queue, departures, key emission, and Khansama ticket dispatch.
+            </p>
           </div>
-          <div className="text-md-end">
-            <span className="badge bg-dark border text-light p-2">
-              Staff Operator: <strong>{currentUser?.name || 'Sarah Jenkins'}</strong>
+          <div className="d-flex align-items-center gap-2">
+            <span className="badge-clean">
+              <CheckCircle size={14} className="me-1 inline" /> Front Desk Online
+            </span>
+            <span className="text-muted small">
+              Operator: {currentUser?.name || 'Rajesh Verma (Chief Concierge)'}
             </span>
           </div>
         </div>
@@ -137,149 +123,136 @@ export const StaffDashboardPage = () => {
         {/* Operational KPI Metric Cards */}
         <div className="row g-3 mb-4">
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--info-bg)' }}>
-                <KeyRound size={22} className="text-info" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">{expectedArrivals.length}</div>
-                <div className="text-muted small">Expected Arrivals</div>
+                <div className="stat-metric-title">Today's Arrivals</div>
+                <div className="stat-metric-val">{expectedArrivals.length}</div>
+                <span className="text-muted small">Awaiting check-in</span>
               </div>
+              <KeyRound size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
 
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--success-bg)' }}>
-                <Users size={22} className="text-success" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">{activeOccupants.length}</div>
-                <div className="text-muted small">Active In-House Stays</div>
+                <div className="stat-metric-title">In-House Residents</div>
+                <div className="stat-metric-val">{activeOccupants.length}</div>
+                <span className="text-muted small">Occupied suites</span>
               </div>
+              <Users size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
 
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--warning-bg)' }}>
-                <Sparkles size={22} className="text-warning" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">{pendingHousekeeping.length}</div>
-                <div className="text-muted small">Dirty Rooms to Clean</div>
+                <div className="stat-metric-title">Housekeeping Queue</div>
+                <div className="stat-metric-val text-danger">{pendingHousekeeping.length}</div>
+                <span className="text-muted small">Dirty suites</span>
               </div>
+              <Sparkles size={28} className="text-danger" />
             </div>
           </div>
 
           <div className="col-6 col-lg-3">
-            <div className="stat-card">
-              <div className="stat-icon-wrapper" style={{ backgroundColor: 'var(--danger-bg)' }}>
-                <UtensilsCrossed size={22} className="text-danger" />
-              </div>
+            <div className="stat-metric-card">
               <div>
-                <div className="fs-3 fw-bold font-serif">{openServiceTickets.length}</div>
-                <div className="text-muted small">Pending Service Orders</div>
+                <div className="stat-metric-title">Active Service Calls</div>
+                <div className="stat-metric-val">{openServiceTickets.length}</div>
+                <span className="text-muted small">Pending dispatch</span>
               </div>
+              <UtensilsCrossed size={28} style={{ color: 'var(--accent-gold)' }} />
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="tabs-luxury mb-4">
-          <button
-            onClick={() => setActiveTab('checkin')}
-            className={`tab-btn ${activeTab === 'checkin' ? 'active' : ''}`}
-          >
-            <CheckCircle size={16} /> Guest Check-In ({expectedArrivals.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('checkout')}
-            className={`tab-btn ${activeTab === 'checkout' ? 'active' : ''}`}
-          >
-            <LogOut size={16} /> Guest Check-Out ({activeOccupants.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('roomstatus')}
-            className={`tab-btn ${activeTab === 'roomstatus' ? 'active' : ''}`}
-          >
-            <BedDouble size={16} /> Room Status Grid ({rooms.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('housekeeping')}
-            className={`tab-btn ${activeTab === 'housekeeping' ? 'active' : ''}`}
-          >
-            <Sparkles size={16} /> Housekeeping & Turndown
-          </button>
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}
-          >
-            <UtensilsCrossed size={16} /> Guest Service Queue ({openServiceTickets.length})
-          </button>
+        {/* Terminal Navigation Tabs */}
+        <div className="d-flex gap-2 mb-4 border-bottom pb-2 overflow-x-auto">
+          {[
+            { id: 'checkin', label: `Arrivals (${expectedArrivals.length})`, icon: <KeyRound size={15} /> },
+            { id: 'checkout', label: `Departures (${activeOccupants.length})`, icon: <LogOut size={15} /> },
+            { id: 'roomstatus', label: `Live Suite Grid (${rooms.length})`, icon: <BedDouble size={15} /> },
+            { id: 'services', label: `Service Tickets (${openServiceTickets.length})`, icon: <UtensilsCrossed size={15} /> },
+            { id: 'housekeeping', label: `Staff Roster (${staffRoster.length})`, icon: <Users size={15} /> },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                backgroundColor: activeTab === tab.id ? 'var(--btn-dark)' : 'transparent',
+                color: activeTab === tab.id ? '#ffffff' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '8px 20px',
+                fontSize: '0.86rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* TAB 1: Guest Check-In Management */}
+        {/* TAB 1: ARRIVALS QUEUE */}
         {activeTab === 'checkin' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="font-serif fw-bold mb-0">Today's Expected Guest Arrivals</h5>
-              <span className="text-muted small">{expectedArrivals.length} reservations awaiting arrival</span>
-            </div>
-
+          <div className="luxury-card p-4">
+            <h3 className="font-serif fw-bold text-main fs-4 mb-3">Expected Arrivals & Express Check-In</h3>
             {expectedArrivals.length === 0 ? (
-              <div className="text-center py-5 text-muted">
-                <CheckCircle size={36} className="text-success mb-2" />
-                <p className="mb-0">All expected arrivals for today have been checked in!</p>
+              <div className="p-4 text-center text-muted">
+                No pending arrivals scheduled for today. All guests checked in.
               </div>
             ) : (
-              <div className="table-luxury-wrapper">
-                <table className="table-luxury">
+              <div className="table-responsive">
+                <table className="luxury-table">
                   <thead>
                     <tr>
-                      <th>Booking Ref</th>
-                      <th>Guest Name</th>
-                      <th>Suite & Room</th>
-                      <th>Stay Dates</th>
-                      <th>Payment Status</th>
-                      <th>Special Notes</th>
+                      <th>Ref Code</th>
+                      <th>Resident Name</th>
+                      <th>Suite Assigned</th>
+                      <th>Duration</th>
+                      <th>Tariff Settled</th>
                       <th className="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {expectedArrivals.map((booking) => (
-                      <tr key={booking.id}>
+                      <tr key={booking.id || booking.bookingReference}>
+                        <td className="fw-bold font-serif">{booking.bookingReference || booking.id}</td>
                         <td>
-                          <strong className="text-warning">{booking.id}</strong>
+                          <div className="fw-semibold text-main">{booking.guestName}</div>
+                          <span className="text-muted small">{booking.guestPhone}</span>
                         </td>
                         <td>
-                          <div className="fw-semibold">{booking.guestName}</div>
-                          <div className="text-muted small">{booking.guestPhone}</div>
+                          <div className="fw-semibold text-main">{booking.roomTitle || booking.roomName}</div>
+                          <span className="text-muted small">Suite #{booking.roomNumber}</span>
                         </td>
                         <td>
-                          <div>{booking.roomName}</div>
-                          <span className="badge bg-dark border border-secondary text-light">
-                            Room #{booking.roomNumber}
-                          </span>
+                          <span className="small">{booking.checkIn} &rarr; {booking.checkOut}</span>
+                          <span className="text-muted small d-block">{booking.nights} nights &bull; {booking.guestsCount || 2} guests</span>
                         </td>
-                        <td>
-                          <div className="small">{booking.checkIn} &rarr; {booking.checkOut}</div>
-                          <div className="text-muted small">{booking.nights} night(s), {booking.guests} guest(s)</div>
-                        </td>
-                        <td>
-                          <span className="badge badge-paid">{booking.paymentStatus}</span>
-                        </td>
-                        <td>
-                          <span className="text-muted small" style={{ maxWidth: '200px', display: 'inline-block' }}>
-                            {booking.specialRequests || 'Standard VIP arrival'}
-                          </span>
+                        <td className="fw-bold font-serif" style={{ color: 'var(--accent-gold)' }}>
+                          ₹ {(booking.totalAmount || 38997).toLocaleString('en-IN')}
                         </td>
                         <td className="text-end text-nowrap">
                           <button
-                            onClick={() => handleCheckIn(booking)}
-                            className="btn btn-sm btn-gold d-inline-flex align-items-center gap-1 text-nowrap"
+                            onClick={() => setSelectedBookingForFolio(booking)}
+                            className="pill-btn-outline py-1 px-3 me-2"
+                            style={{ fontSize: '0.78rem' }}
                           >
-                            <KeyRound size={14} /> Express Check-In
+                            Folio
+                          </button>
+                          <button
+                            onClick={() => handleCheckIn(booking)}
+                            className="pill-btn-dark py-1 px-3 text-nowrap"
+                            style={{ fontSize: '0.78rem' }}
+                          >
+                            Express Check-In
                           </button>
                         </td>
                       </tr>
@@ -291,65 +264,62 @@ export const StaffDashboardPage = () => {
           </div>
         )}
 
-        {/* TAB 2: Guest Check-Out Processing */}
+        {/* TAB 2: DEPARTURES QUEUE */}
         {activeTab === 'checkout' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="font-serif fw-bold mb-0">In-House Stays & Check-Out Processing</h5>
-              <span className="text-muted small">{activeOccupants.length} active rooms</span>
-            </div>
-
+          <div className="luxury-card p-4">
+            <h3 className="font-serif fw-bold text-main fs-4 mb-3">In-House Residents & Departures</h3>
             {activeOccupants.length === 0 ? (
-              <div className="text-center py-5 text-muted">
-                <Users size={36} className="opacity-50 mb-2" />
-                <p className="mb-0">No active in-house occupants currently.</p>
+              <div className="p-4 text-center text-muted">
+                No active occupants currently registered in house.
               </div>
             ) : (
-              <div className="table-luxury-wrapper">
-                <table className="table-luxury">
+              <div className="table-responsive">
+                <table className="luxury-table">
                   <thead>
                     <tr>
-                      <th>Room</th>
-                      <th>Guest Name</th>
+                      <th>Ref Code</th>
+                      <th>Resident Name</th>
+                      <th>Suite</th>
                       <th>Check-Out Date</th>
-                      <th>Total Charges</th>
-                      <th>Folio Verification</th>
+                      <th>Payment Status</th>
                       <th className="text-end">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activeOccupants.map((booking) => (
-                      <tr key={booking.id}>
+                      <tr key={booking.id || booking.bookingReference}>
+                        <td className="fw-bold font-serif">{booking.bookingReference || booking.id}</td>
                         <td>
-                          <span className="fs-5 font-serif fw-bold text-warning">#{booking.roomNumber}</span>
-                          <div className="text-muted small">{booking.roomName}</div>
+                          <div className="fw-semibold text-main">{booking.guestName}</div>
+                          <span className="text-muted small">{booking.guestPhone}</span>
                         </td>
                         <td>
-                          <div className="fw-semibold">{booking.guestName}</div>
-                          <div className="text-muted small">{booking.guestEmail}</div>
+                          <div className="fw-semibold text-main">{booking.roomTitle || booking.roomName}</div>
+                          <span className="text-muted small">Suite #{booking.roomNumber}</span>
                         </td>
                         <td>
-                          <div className="fw-semibold small">{booking.checkOut}</div>
-                          <span className="badge bg-secondary-subtle text-muted">Until 11:00 AM</span>
+                          <span className="small">{booking.checkOut}</span>
+                          <span className="text-muted small d-block">Expected 12:00 PM</span>
                         </td>
                         <td>
-                          <div className="fw-bold text-warning font-serif">${booking.totalAmount}</div>
-                          <span className="badge badge-paid">Settled ({booking.paymentMethod})</span>
-                        </td>
-                        <td>
-                          <button
-                            onClick={() => setSelectedBookingForFolio(booking)}
-                            className="btn btn-sm btn-secondary-custom d-inline-flex align-items-center gap-1"
-                          >
-                            <FileText size={14} /> Inspect Folio
-                          </button>
+                          <span className="badge-clean">
+                            {booking.paymentStatus || 'Paid in Full'}
+                          </span>
                         </td>
                         <td className="text-end">
                           <button
-                            onClick={() => handleCheckOut(booking)}
-                            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+                            onClick={() => setSelectedBookingForFolio(booking)}
+                            className="pill-btn-outline py-1 px-3 me-2"
+                            style={{ fontSize: '0.78rem' }}
                           >
-                            <LogOut size={14} /> Process Check-Out
+                            Folio
+                          </button>
+                          <button
+                            onClick={() => handleCheckOut(booking)}
+                            className="pill-btn-dark py-1 px-3 bg-danger border-danger"
+                            style={{ fontSize: '0.78rem' }}
+                          >
+                            Check-Out
                           </button>
                         </td>
                       </tr>
@@ -361,152 +331,139 @@ export const StaffDashboardPage = () => {
           </div>
         )}
 
-        {/* TAB 3: Room Status Grid */}
+        {/* TAB 3: LIVE ROOM STATUS GRID */}
         {activeTab === 'roomstatus' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-              <div>
-                <h5 className="font-serif fw-bold mb-1">Live Room Status Board</h5>
-                <p className="text-muted small mb-0">Select any room to change status between Clean, Dirty, Inspected, and Out of Order.</p>
-              </div>
-
-              {/* Status Legend */}
-              <div className="d-flex flex-wrap gap-2">
-                <span className="badge badge-clean">Clean</span>
-                <span className="badge badge-inspected">Inspected</span>
-                <span className="badge badge-dirty">Dirty</span>
-                <span className="badge badge-out-of-order">Out of Order</span>
+          <div className="luxury-card p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h3 className="font-serif fw-bold text-main fs-4 m-0">Live Palace Suite Inventory Status</h3>
+              <div className="d-flex gap-2">
+                {['All', 'Clean', 'Dirty', 'Inspected', 'Out of Order'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setRoomFilter(status)}
+                    style={{
+                      backgroundColor: roomFilter === status ? 'var(--btn-dark)' : 'var(--bg-surface-subtle)',
+                      color: roomFilter === status ? '#ffffff' : 'var(--text-secondary)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '9999px',
+                      padding: '4px 14px',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {status}
+                  </button>
+                ))}
               </div>
             </div>
 
             <div className="row g-3">
-              {rooms.map((room) => (
-                <div className="col-6 col-md-4 col-lg-3" key={room.id}>
-                  <div className="card-luxury p-3 text-center position-relative h-100">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <span className="badge bg-dark border border-secondary text-light small">
-                        Fl. {room.floor}
-                      </span>
-                      <span className={`badge ${
-                        room.status === 'Clean' ? 'badge-clean' :
-                        room.status === 'Inspected' ? 'badge-inspected' :
-                        room.status === 'Dirty' ? 'badge-dirty' : 'badge-out-of-order'
-                      }`}>
-                        {room.status}
-                      </span>
-                    </div>
+              {rooms
+                .filter((r) => roomFilter === 'All' || r.status === roomFilter)
+                .map((room) => {
+                  const displayTitle = room.title || room.name;
+                  const displayPrice = room.price || room.basePrice || 18500;
+                  return (
+                    <div key={room.id} className="col-12 col-md-6 col-lg-4">
+                      <div className="p-3 rounded-3 border" style={{ backgroundColor: '#ffffff', borderColor: 'var(--border-subtle)' }}>
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <div>
+                            <span className="font-serif fw-bold fs-5 text-main">Suite #{room.roomNumber}</span>
+                            <div className="text-muted small">{displayTitle}</div>
+                          </div>
+                          <span
+                            className={
+                              room.status === 'Clean'
+                                ? 'badge-clean'
+                                : room.status === 'Dirty'
+                                ? 'badge-dirty'
+                                : room.status === 'Inspected'
+                                ? 'badge-inspected'
+                                : 'badge-maintenance'
+                            }
+                          >
+                            {room.status}
+                          </span>
+                        </div>
 
-                    <div className="fs-3 font-serif fw-bold text-warning mb-1">#{room.roomNumber}</div>
-                    <div className="small fw-semibold mb-2" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {room.name}
-                    </div>
+                        <div className="d-flex justify-content-between align-items-center small text-secondary my-2">
+                          <span>{room.type || room.category}</span>
+                          <span className="fw-bold font-serif" style={{ color: 'var(--accent-gold)' }}>
+                            ₹ {displayPrice.toLocaleString('en-IN')}/nt
+                          </span>
+                        </div>
 
-                    {/* Quick Status Selector */}
-                    <div className="mt-auto pt-2 border-top">
-                      <label className="text-muted small d-block mb-1" style={{ fontSize: '0.7rem' }}>Update Status:</label>
-                      <select
-                        className="input-luxury py-1 px-2 small text-center"
-                        style={{ fontSize: '0.8rem' }}
-                        value={room.status}
-                        onChange={(e) => handleStatusChange(room.id, e.target.value)}
-                      >
-                        <option value="Clean">Clean</option>
-                        <option value="Inspected">Inspected</option>
-                        <option value="Dirty">Dirty</option>
-                        <option value="Out of Order">Out of Order</option>
-                      </select>
+                        {/* Status Change Selector */}
+                        <div className="pt-2 border-top mt-2">
+                          <label className="form-label small text-muted mb-1" style={{ fontSize: '0.72rem' }}>
+                            Update Housekeeping Status:
+                          </label>
+                          <select
+                            value={room.status}
+                            onChange={(e) => handleStatusChange(room.roomNumber || room.id, e.target.value)}
+                            className="form-select form-select-sm rounded-pill"
+                            style={{ backgroundColor: 'var(--bg-surface-subtle)', fontSize: '0.78rem' }}
+                          >
+                            <option value="Clean">Clean (Ready for Check-In)</option>
+                            <option value="Dirty">Dirty (Needs Housekeeping)</option>
+                            <option value="Inspected">Inspected (Supervisor Approved)</option>
+                            <option value="Out of Order">Out of Order (Maintenance)</option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           </div>
         )}
 
-        {/* TAB 4: Housekeeping & Turndown */}
-        {activeTab === 'housekeeping' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div>
-                <h5 className="font-serif fw-bold mb-0">Housekeeping Assignment Roster</h5>
-                <p className="text-muted small mb-0">Rooms requiring sanitization, linen refresh, and supervisor inspection.</p>
-              </div>
-              <button
-                onClick={() => {
-                  rooms.filter(r => r.status === 'Dirty').forEach(r => {
-                    dispatch(updateRoomStatus({ roomId: r.id, status: 'Clean' }));
-                  });
-                  toast.success('All dirty rooms marked as Clean!');
-                }}
-                className="btn btn-sm btn-gold"
-              >
-                <Check size={14} /> Batch Mark All Clean
-              </button>
-            </div>
-
-            <div className="table-luxury-wrapper">
-              <table className="table-luxury">
+        {/* TAB 4: SERVICE DISPATCH QUEUE */}
+        {activeTab === 'services' && (
+          <div className="luxury-card p-4">
+            <h3 className="font-serif fw-bold text-main fs-4 mb-3">Active Guest Service Tickets</h3>
+            <div className="table-responsive">
+              <table className="luxury-table">
                 <thead>
                   <tr>
-                    <th>Room #</th>
-                    <th>Suite Name</th>
-                    <th>Current Status</th>
-                    <th>Housekeeping Lead</th>
-                    <th>Actions</th>
+                    <th>Suite #</th>
+                    <th>Resident</th>
+                    <th>Service Category</th>
+                    <th>Request Details</th>
+                    <th>Assigned To</th>
+                    <th>Status</th>
+                    <th className="text-end">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rooms.map((room) => (
-                    <tr key={room.id}>
+                  {services.map((srv) => (
+                    <tr key={srv.id}>
+                      <td className="fw-bold font-serif">Suite #{srv.roomNumber}</td>
+                      <td>{srv.guestName}</td>
                       <td>
-                        <strong className="fs-5 font-serif text-warning">#{room.roomNumber}</strong>
-                      </td>
-                      <td>
-                        <div className="fw-semibold">{room.name}</div>
-                        <span className="text-muted small">{room.category} &bull; Floor {room.floor}</span>
-                      </td>
-                      <td>
-                        <span className={`badge ${
-                          room.status === 'Clean' ? 'badge-clean' :
-                          room.status === 'Inspected' ? 'badge-inspected' :
-                          room.status === 'Dirty' ? 'badge-dirty' : 'badge-out-of-order'
-                        }`}>
-                          {room.status}
+                        <span className="badge rounded-pill" style={{ backgroundColor: 'var(--accent-gold-light)', color: 'var(--accent-gold)' }}>
+                          {srv.serviceType}
                         </span>
                       </td>
+                      <td className="small" style={{ maxWidth: '300px' }}>{srv.details}</td>
+                      <td className="small text-muted">{srv.assignedTo || 'Unassigned'}</td>
                       <td>
-                        <span className="small text-muted">Mateo Rodriguez (Lead)</span>
+                        <span className={srv.status === 'Completed' ? 'badge-clean' : 'badge-dirty'}>
+                          {srv.status}
+                        </span>
                       </td>
-                      <td>
-                        <div className="d-flex gap-1">
-                          {room.status === 'Dirty' && (
-                            <button
-                              onClick={() => handleStatusChange(room.id, 'Clean')}
-                              className="btn btn-sm btn-success py-1"
-                              style={{ fontSize: '0.75rem' }}
-                            >
-                              Mark Cleaned
-                            </button>
-                          )}
-                          {room.status === 'Clean' && (
-                            <button
-                              onClick={() => handleStatusChange(room.id, 'Inspected')}
-                              className="btn btn-sm btn-info py-1 text-white"
-                              style={{ fontSize: '0.75rem' }}
-                            >
-                              Verify & Inspect
-                            </button>
-                          )}
-                          {room.status !== 'Dirty' && (
-                            <button
-                              onClick={() => handleStatusChange(room.id, 'Dirty')}
-                              className="btn btn-sm btn-secondary-custom py-1"
-                              style={{ fontSize: '0.75rem' }}
-                            >
-                              Flag Dirty
-                            </button>
-                          )}
-                        </div>
+                      <td className="text-end">
+                        <select
+                          value={srv.status}
+                          onChange={(e) => handleServiceStatus(srv.id, e.target.value)}
+                          className="form-select form-select-sm rounded-pill d-inline-block w-auto"
+                          style={{ fontSize: '0.75rem' }}
+                        >
+                          <option value="Pending">Pending</option>
+                          <option value="In Progress">In Progress</option>
+                          <option value="Completed">Completed</option>
+                        </select>
                       </td>
                     </tr>
                   ))}
@@ -516,56 +473,25 @@ export const StaffDashboardPage = () => {
           </div>
         )}
 
-        {/* TAB 5: Guest Service Request Queue */}
-        {activeTab === 'services' && (
-          <div className="card-luxury p-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="font-serif fw-bold mb-0">Active Guest Service Tickets</h5>
-              <span className="text-muted small">{openServiceTickets.length} pending execution</span>
-            </div>
-
-            <div className="d-flex flex-column gap-3">
-              {services.map((srv) => (
-                <div className="card-luxury p-3 border" key={srv.id} style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                  <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-                    <div>
-                      <div className="d-flex align-items-center gap-2 mb-1">
-                        <span className="badge bg-warning text-dark fw-bold">Room #{srv.roomNumber}</span>
-                        <span className="badge bg-secondary-subtle text-muted">{srv.type}</span>
-                        <span className={`badge ${
-                          srv.status === 'Completed' ? 'badge-completed' :
-                          srv.status === 'In Progress' ? 'badge-in-progress' : 'badge-pending'
-                        }`}>
-                          {srv.status}
-                        </span>
-                        <span className="text-muted small">&bull; Requested at {srv.timeRequested}</span>
-                      </div>
-                      <h6 className="fw-bold mb-1">{srv.title}</h6>
-                      <p className="text-muted small mb-0">{srv.details}</p>
-                    </div>
-
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="text-muted small text-end me-2 d-none d-md-block">
-                        <div>Assigned To:</div>
-                        <strong>{srv.assignedTo || 'Unassigned'}</strong>
-                      </div>
-
-                      <button
-                        onClick={() => handleServiceStatusToggle(srv.id, srv.status)}
-                        className={`btn btn-sm ${
-                          srv.status === 'Completed'
-                            ? 'btn-secondary-custom'
-                            : srv.status === 'In Progress'
-                            ? 'btn-success'
-                            : 'btn-gold'
-                        }`}
-                      >
-                        {srv.status === 'Pending'
-                          ? 'Start Service'
-                          : srv.status === 'In Progress'
-                          ? 'Mark Completed'
-                          : 'Re-Open'}
-                      </button>
+        {/* TAB 5: STAFF ROSTER */}
+        {activeTab === 'housekeeping' && (
+          <div className="luxury-card p-4">
+            <h3 className="font-serif fw-bold text-main fs-4 mb-3">On-Duty Hospitality Roster</h3>
+            <div className="row g-3">
+              {staffRoster.map((staff) => (
+                <div key={staff.id} className="col-12 col-md-6 col-lg-3">
+                  <div className="p-3 rounded-3 border text-center" style={{ backgroundColor: '#ffffff', borderColor: 'var(--border-subtle)' }}>
+                    <img
+                      src={staff.avatar}
+                      alt={staff.name}
+                      className="rounded-circle mb-2 border"
+                      style={{ width: '64px', height: '64px', objectFit: 'cover' }}
+                    />
+                    <h5 className="font-serif fw-bold text-main fs-6 mb-1">{staff.name}</h5>
+                    <div className="text-muted small mb-2">{staff.role}</div>
+                    <span className="badge-clean">{staff.status}</span>
+                    <div className="text-muted small mt-2" style={{ fontSize: '0.72rem' }}>
+                      Shift: {staff.shift}
                     </div>
                   </div>
                 </div>
@@ -575,11 +501,12 @@ export const StaffDashboardPage = () => {
         )}
       </div>
 
-      <InvoiceModal
-        isOpen={Boolean(selectedBookingForFolio)}
-        onClose={() => setSelectedBookingForFolio(null)}
-        booking={selectedBookingForFolio}
-      />
+      {selectedBookingForFolio && (
+        <InvoiceModal
+          booking={selectedBookingForFolio}
+          onClose={() => setSelectedBookingForFolio(null)}
+        />
+      )}
     </div>
   );
 };

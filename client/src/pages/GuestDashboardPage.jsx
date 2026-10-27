@@ -22,7 +22,10 @@ import {
   Crown,
   Bell,
   Heart,
-  Utensils
+  Utensils,
+  MapPin,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -32,12 +35,10 @@ export const GuestDashboardPage = () => {
   const bookings = useSelector((state) => state.bookings.bookings);
 
   // Filter bookings for guest
-  const userBookings = bookings.filter(
-    (b) => b.guestEmail?.toLowerCase() === currentUser?.email?.toLowerCase() || b.guestId === currentUser?.id || true
-  );
+  const userBookings = bookings.length > 0 ? bookings : [];
 
-  const [activeTab, setActiveTab] = useState('active'); // 'active' | 'history' | 'profile'
-  const [historyFilter, setHistoryFilter] = useState('all'); // 'all' | 'Confirmed' | 'Checked-In' | 'Checked-Out' | 'Cancelled'
+  const [activeTab, setActiveTab] = useState('active');
+  const [historyFilter, setHistoryFilter] = useState('all');
 
   // Modals state
   const [selectedBookingForInvoice, setSelectedBookingForInvoice] = useState(null);
@@ -48,492 +49,535 @@ export const GuestDashboardPage = () => {
 
   // Digital Key unlock simulation
   const [keyUnlocked, setKeyUnlocked] = useState(false);
-  const [isUnlocking, setIsUnlocking] = useState(false);
 
-  // Profile Form state
-  const [profileName, setProfileName] = useState(currentUser?.name || 'Lord Johnathan Vance');
-  const [profilePhone, setProfilePhone] = useState('+1 (555) 349-2810');
-  const [pillowPref, setPillowPref] = useState('Hypoallergenic Goose Feather');
-  const [dietPref, setDietPref] = useState('Fine French Cuisine / Pescatarian');
+  // Profile preferences state
+  const [phone, setPhone] = useState(currentUser?.phone || '+91 98201 44521');
+  const [dietary, setDietary] = useState(currentUser?.vipPreferences?.dietary || 'Royal Mewari Vegetarian & Cold-pressed Juices');
+  const [floorPreference, setFloorPreference] = useState(currentUser?.vipPreferences?.floorPreference || 'Lake-Facing Upper Floor');
+  const [pillowType, setPillowType] = useState(currentUser?.vipPreferences?.pillowType || 'Organic Himalayan Silk Pillow');
+  const [specialNotes, setSpecialNotes] = useState(currentUser?.vipPreferences?.specialNotes || 'Prefers sunrise yoga mat and morning kesar tea.');
 
-  const activeStay = userBookings.find(
-    (b) => b.bookingStatus === 'Confirmed' || b.bookingStatus === 'Checked-In'
-  );
+  // Find active or upcoming booking
+  const activeStay =
+    userBookings.find((b) => b.bookingStatus === 'Checked-In' || b.bookingStatus === 'Confirmed') ||
+    userBookings[0] || {
+      id: 'BK-8921',
+      bookingReference: 'BK-8921',
+      roomTitle: 'The Royal Lake Palace Suite',
+      roomName: 'The Royal Lake Palace Suite',
+      roomNumber: 'SU-402',
+      checkIn: '2026-10-28',
+      checkOut: '2026-10-31',
+      nights: 3,
+      bookingStatus: 'Confirmed',
+      totalAmount: 73500,
+      specialRequests: 'Kesar Pista welcome kulfi upon arrival and evening boat high tea.',
+    };
 
-  const handleUnlockDoor = () => {
-    setIsUnlocking(true);
+  const handleTriggerNfcUnlock = () => {
+    setKeyUnlocked(true);
+    toast.success(`NFC Digital Key Transmitted! Suite #${activeStay.roomNumber} Unlocked.`);
     setTimeout(() => {
-      setIsUnlocking(false);
-      setKeyUnlocked(true);
-      toast.success('Mobile Key Verified! Suite Door #202 Unlocked.');
-      setTimeout(() => setKeyUnlocked(false), 5000);
-    }, 1000);
+      setKeyUnlocked(false);
+    }, 4500);
   };
 
-  const handleConfirmCancel = (e) => {
-    e.preventDefault();
+  const handleConfirmCancel = () => {
     if (!selectedBookingForCancel) return;
-
     dispatch(
       cancelBooking({
-        bookingId: selectedBookingForCancel.id,
-        reason: cancelReason
+        bookingId: selectedBookingForCancel.id || selectedBookingForCancel.bookingReference,
+        reason: cancelReason,
       })
     );
-
     dispatch(
       addAuditLog({
-        user: `${currentUser?.name} (Guest)`,
-        action: 'Booking Cancelled & Refunded',
-        details: `Booking ${selectedBookingForCancel.id} cancelled. Refund of $${selectedBookingForCancel.totalAmount} initiated.`
+        user: `${currentUser?.name || 'Resident'} (Guest)`,
+        action: 'Reservation Cancelled with 100% Refund',
+        details: `Cancelled reservation ${selectedBookingForCancel.bookingReference || selectedBookingForCancel.id} with automated full settlement refund.`,
       })
     );
-
-    toast.info(`Booking ${selectedBookingForCancel.id} has been cancelled. Full refund has been credited to your original payment method.`);
+    toast.info(`Reservation #${selectedBookingForCancel.bookingReference || selectedBookingForCancel.id} cancelled. 100% refund processed.`);
     setSelectedBookingForCancel(null);
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSavePreferences = (e) => {
     e.preventDefault();
     dispatch(
       updateProfile({
-        name: profileName,
-        phone: profilePhone
+        phone,
+        vipPreferences: {
+          dietary,
+          floorPreference,
+          pillowType,
+          specialNotes,
+        },
       })
     );
-    toast.success('VIP Guest profile & preferences updated successfully.');
+    toast.success('VIP Resident Preferences updated successfully.');
   };
 
   return (
-    <div className="guest-dashboard py-5" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div style={{ backgroundColor: 'var(--bg-body)' }} className="py-5">
       <div className="container py-2">
         {/* Welcome Header */}
-        <div className="card-luxury p-4 mb-4" style={{ background: 'linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-elevated) 100%)' }}>
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div className="luxury-card p-4 mb-4">
+          <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div className="d-flex align-items-center gap-3">
-              <div
-                className="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-md"
-                style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #556b2f 0%, #283618 100%)', border: '2px solid var(--yellow-200)', color: '#fef08a', fontSize: '1.4rem' }}
-              >
-                {currentUser?.name ? currentUser.name.charAt(0) : 'J'}
-              </div>
+              <img
+                src={currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'}
+                alt=""
+                className="rounded-circle border"
+                style={{ width: '64px', height: '64px', objectFit: 'cover', borderColor: 'var(--accent-gold)' }}
+              />
               <div>
                 <div className="d-flex align-items-center gap-2">
-                  <h3 className="font-serif fw-bold mb-0">{currentUser?.name || 'Lord Johnathan Vance'}</h3>
-                  <span className="badge bg-warning text-dark fw-bold px-2 py-1">
-                    <Crown size={12} className="me-1 inline" /> VIP BLACK TIER
+                  <h2 className="font-serif fw-bold text-main mb-0">{currentUser?.name || 'Aisha Sharma'}</h2>
+                  <span
+                    className="badge rounded-pill px-3 py-1 fw-bold"
+                    style={{ backgroundColor: 'var(--accent-gold-light)', color: 'var(--accent-gold)', border: '1px solid var(--accent-gold-border)', fontSize: '0.72rem' }}
+                  >
+                    <Crown size={12} className="me-1 inline" /> ROYAL PRIVILEGE TIER
                   </span>
                 </div>
-                <p className="text-muted small mb-0">{currentUser?.email} &bull; Member since 2024</p>
+                <p className="text-muted small mb-0">{currentUser?.email || 'aisha.sharma@luxuryindia.com'} &bull; Resident Member</p>
               </div>
             </div>
 
             <div className="d-flex gap-2">
               <button
                 onClick={() => setShowServiceModal(true)}
-                className="btn btn-gold d-flex align-items-center gap-2"
+                className="pill-btn-dark py-2 px-4"
+                style={{ fontSize: '0.85rem' }}
               >
-                <Utensils size={16} /> Request Suite Service
+                <Utensils size={15} /> Request Palace Khansama
               </button>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="tabs-luxury mb-4">
+        <div className="d-flex gap-2 mb-4 border-bottom pb-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('active')}
-            className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+            style={{
+              backgroundColor: activeTab === 'active' ? 'var(--btn-dark)' : 'transparent',
+              color: activeTab === 'active' ? '#ffffff' : 'var(--text-secondary)',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '8px 20px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
-            <KeyRound size={16} /> Active Sanctuary Stay
+            <KeyRound size={15} /> Active Stay & NFC Key
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+            style={{
+              backgroundColor: activeTab === 'history' ? 'var(--btn-dark)' : 'transparent',
+              color: activeTab === 'history' ? '#ffffff' : 'var(--text-secondary)',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '8px 20px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
-            <FileText size={16} /> Booking History & Folios ({userBookings.length})
+            <FileText size={15} /> Stay History & Folios ({userBookings.length})
           </button>
           <button
             onClick={() => setActiveTab('profile')}
-            className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
+            style={{
+              backgroundColor: activeTab === 'profile' ? 'var(--btn-dark)' : 'transparent',
+              color: activeTab === 'profile' ? '#ffffff' : 'var(--text-secondary)',
+              border: 'none',
+              borderRadius: '9999px',
+              padding: '8px 20px',
+              fontSize: '0.86rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
           >
-            <User size={16} /> VIP Profile & Preferences
+            <User size={15} /> VIP Resident Preferences
           </button>
         </div>
 
-        {/* TAB 1: Active Stay Card */}
+        {/* TAB 1: Active Stay Card & Digital Key */}
         {activeTab === 'active' && (
-          <div>
-            {activeStay ? (
-              <div className="row g-4">
-                {/* Active Stay Details */}
-                <div className="col-lg-8">
-                  <div className="card-luxury p-4">
-                    <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                      <div>
-                        <span className="text-warning small text-uppercase fw-bold">Current Residence</span>
-                        <h4 className="font-serif fw-bold mb-0">{activeStay.roomName}</h4>
-                      </div>
-                      <span className={`badge ${activeStay.bookingStatus === 'Checked-In' ? 'badge-inspected' : 'badge-confirmed'}`}>
-                        {activeStay.bookingStatus}
+          <div className="row g-4">
+            {/* Active Stay Details */}
+            <div className="col-lg-7">
+              <div className="luxury-card p-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                  <div>
+                    <span className="eyebrow-kicker mb-1" style={{ fontSize: '0.72rem' }}>CURRENT PALACE RESIDENCE</span>
+                    <h3 className="font-serif fw-bold text-main fs-4 m-0">{activeStay.roomTitle || activeStay.roomName}</h3>
+                  </div>
+                  <span className="badge-clean">
+                    {activeStay.bookingStatus}
+                  </span>
+                </div>
+
+                <div className="row g-3 mb-4">
+                  <div className="col-sm-6">
+                    <div className="p-3 rounded-3" style={{ backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)' }}>
+                      <span className="text-muted small d-block">Suite Room Number</span>
+                      <span className="fs-3 fw-bold font-serif text-main">Suite #{activeStay.roomNumber}</span>
+                    </div>
+                  </div>
+                  <div className="col-sm-6">
+                    <div className="p-3 rounded-3" style={{ backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)' }}>
+                      <span className="text-muted small d-block">Reservation Tariff Settled</span>
+                      <span className="fs-4 fw-bold font-serif" style={{ color: 'var(--accent-gold)' }}>
+                        ₹ {(activeStay.totalAmount || 73500).toLocaleString('en-IN')}
                       </span>
-                    </div>
-
-                    <div className="row g-3 mb-4">
-                      <div className="col-sm-6">
-                        <div className="p-3 rounded" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                          <span className="text-muted small d-block">Suite Room Number</span>
-                          <span className="fs-4 fw-bold font-serif text-warning">Room #{activeStay.roomNumber}</span>
-                        </div>
-                      </div>
-                      <div className="col-sm-6">
-                        <div className="p-3 rounded" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                          <span className="text-muted small d-block">Dates of Stay</span>
-                          <span className="fw-semibold small">{activeStay.checkIn} &rarr; {activeStay.checkOut} ({activeStay.nights} nights)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <h6 className="fw-bold small text-muted text-uppercase mb-2">Guest Special Requests</h6>
-                      <p className="text-muted small p-3 rounded border mb-0" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-                        "{activeStay.specialRequests || 'No additional special requests recorded.'}"
-                      </p>
-                    </div>
-
-                    <div className="d-flex gap-2 flex-wrap">
-                      <button
-                        onClick={() => setSelectedBookingForInvoice(activeStay)}
-                        className="btn btn-secondary-custom"
-                      >
-                        <FileText size={15} /> View Folio & Tax Invoice
-                      </button>
-                      <button
-                        onClick={() => setShowServiceModal(true)}
-                        className="btn btn-gold-outline"
-                      >
-                        <Sparkles size={15} /> Request Butler / Concierge
-                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Digital Key & Smart Access */}
-                <div className="col-lg-4">
-                  <div className="card-luxury p-4 text-center">
-                    <div className="mb-3">
-                      <span className="badge bg-secondary-subtle text-muted small text-uppercase">
-                        Keyless Mobile Access
-                      </span>
-                      <h5 className="font-serif fw-bold mt-1">Digital Suite Key</h5>
-                    </div>
-
-                    <div
-                      className={`rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4 cursor-pointer transition-normal shadow-lg ${
-                        keyUnlocked
-                          ? 'border border-success bg-success-subtle text-success'
-                          : isUnlocking
-                          ? 'border border-warning bg-warning-subtle text-warning'
-                          : 'border border-secondary bg-dark text-white'
-                      }`}
-                      style={{ width: '130px', height: '130px', cursor: 'pointer' }}
-                      onClick={handleUnlockDoor}
-                    >
-                      {keyUnlocked ? (
-                        <div>
-                          <CheckCircle size={44} />
-                          <div className="small fw-bold mt-1">UNLOCKED</div>
-                        </div>
-                      ) : isUnlocking ? (
-                        <div>
-                          <Sparkles size={44} className="pulse-subtle" />
-                          <div className="small fw-bold mt-1">VERIFYING...</div>
-                        </div>
-                      ) : (
-                        <div>
-                          <KeyRound size={44} />
-                          <div className="small fw-bold mt-1">TAP TO UNLOCK</div>
-                        </div>
-                      )}
-                    </div>
-
-                    <p className="text-muted small mb-3">
-                      Hold your phone near the electronic door handle for Room #{activeStay.roomNumber}.
-                    </p>
-
-                    <div className="p-2 rounded text-muted small border" style={{ backgroundColor: 'var(--bg-secondary)', fontSize: '0.75rem' }}>
-                      <ShieldCheck size={14} className="text-success me-1 inline" />
-                      Encrypted NFC Token: Active until 11:00 AM on {activeStay.checkOut}
-                    </div>
+                <div className="mb-4">
+                  <span className="text-muted small fw-semibold text-uppercase d-block mb-1">Stay Dates & Duration</span>
+                  <div className="d-flex align-items-center gap-2 text-main fw-medium">
+                    <Calendar size={16} style={{ color: 'var(--accent-gold)' }} />
+                    <span>{activeStay.checkIn} &rarr; {activeStay.checkOut} ({activeStay.nights || 3} Nights)</span>
                   </div>
+                </div>
+
+                <div className="mb-4">
+                  <span className="text-muted small fw-semibold text-uppercase d-block mb-1">Resident Special Requests</span>
+                  <p className="text-secondary small p-3 rounded-3 mb-0" style={{ backgroundColor: 'var(--bg-surface-subtle)', border: '1px solid var(--border-subtle)' }}>
+                    "{activeStay.specialRequests || 'Kesar Pista welcome kulfi upon arrival and evening boat high tea.'}"
+                  </p>
+                </div>
+
+                <div className="d-flex gap-2 flex-wrap">
+                  <button
+                    onClick={() => setSelectedBookingForInvoice(activeStay)}
+                    className="pill-btn-outline py-2 px-3"
+                    style={{ fontSize: '0.84rem' }}
+                  >
+                    <FileText size={15} /> View Tax Invoice Folio
+                  </button>
+                  <button
+                    onClick={() => setShowServiceModal(true)}
+                    className="pill-btn-dark py-2 px-3"
+                    style={{ fontSize: '0.84rem' }}
+                  >
+                    <Sparkles size={15} /> Request Palace Khansama
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div className="card-luxury p-5 text-center">
-                <Calendar size={40} className="text-warning mb-3 opacity-60" />
-                <h4 className="font-serif fw-bold">No Active Stay In Progress</h4>
-                <p className="text-muted small mb-4">You do not currently have a stay checked-in. Explore our signature suites to reserve your next escape.</p>
-                <button onClick={() => window.location.href = '/rooms'} className="btn btn-gold">
-                  Explore Available Suites
+            </div>
+
+            {/* Smart NFC Key Digital Pass */}
+            <div className="col-lg-5">
+              <div className="luxury-card p-4 text-center">
+                <div className="eyebrow-kicker mb-2">SMART NFC DIGITAL KEY</div>
+                <h4 className="font-serif fw-bold text-main fs-5 mb-3">Keyless Palace Access</h4>
+
+                {/* Key Visualizer */}
+                <div
+                  className="p-4 rounded-4 mb-4 text-white text-start position-relative overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, #181818 0%, #2b2b2b 100%)',
+                    boxShadow: 'var(--shadow-card)',
+                  }}
+                >
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <span className="font-serif fw-bold text-uppercase" style={{ letterSpacing: '0.15em', fontSize: '0.9rem', color: 'var(--accent-gold)' }}>
+                      LUMIÈRE DIGITAL PASS
+                    </span>
+                    <ShieldCheck size={20} style={{ color: 'var(--accent-gold)' }} />
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="opacity-75 small d-block">Authorized Suite</span>
+                    <span className="fs-3 fw-bold font-serif text-white">Suite #{activeStay.roomNumber}</span>
+                  </div>
+
+                  <div className="d-flex justify-content-between align-items-end small opacity-80 pt-2 border-top border-secondary">
+                    <span>Resident: {currentUser?.name || 'Aisha Sharma'}</span>
+                    <span>Valid: {activeStay.checkOut}</span>
+                  </div>
+                </div>
+
+                {/* Tap to Unlock Button */}
+                <button
+                  onClick={handleTriggerNfcUnlock}
+                  disabled={keyUnlocked}
+                  className="pill-btn-dark w-100 py-3 mb-3 d-flex align-items-center justify-content-center gap-2"
+                >
+                  {keyUnlocked ? (
+                    <>
+                      <Unlock size={18} className="text-success" />
+                      <span>Transmitting NFC Pulse... Unlocked!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock size={18} />
+                      <span>Tap to Unlock Door (NFC)</span>
+                    </>
+                  )}
                 </button>
+                <div className="text-muted small">
+                  Hold your mobile device within 5 cm of the royal suite door sensor.
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
-        {/* TAB 2: Booking History & Folios */}
+        {/* TAB 2: Booking History & Cancellation */}
         {activeTab === 'history' && (
-          <div>
-            {/* Filter Pills */}
-            <div className="d-flex gap-2 mb-4 overflow-x-auto pb-2">
-              {['all', 'Confirmed', 'Checked-In', 'Checked-Out', 'Cancelled'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setHistoryFilter(status)}
-                  className={`btn btn-sm rounded-pill px-3 py-1 ${
-                    historyFilter === status ? 'btn-gold' : 'btn-secondary-custom'
-                  }`}
-                >
-                  {status === 'all' ? 'All Bookings' : status}
-                </button>
-              ))}
+          <div className="luxury-card p-4">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h3 className="font-serif fw-bold text-main fs-4 m-0">Your Reservations & Tax Invoices</h3>
+              <select
+                value={historyFilter}
+                onChange={(e) => setHistoryFilter(e.target.value)}
+                className="form-select form-select-sm rounded-pill w-auto"
+                style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+              >
+                <option value="all">All Stays</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Checked-In">Checked In</option>
+                <option value="Cancelled">Cancelled & Refunded</option>
+              </select>
             </div>
 
-            <div className="d-flex flex-column gap-3">
-              {userBookings
-                .filter((b) => historyFilter === 'all' || b.bookingStatus === historyFilter)
-                .map((booking) => (
-                  <div className="card-luxury p-4" key={booking.id}>
-                    <div className="row g-3 align-items-center">
-                      <div className="col-md-5">
-                        <div className="d-flex align-items-center gap-2 mb-1">
-                          <span className="fw-bold font-serif fs-5">{booking.roomName}</span>
-                          <span className={`badge ${
-                            booking.bookingStatus === 'Confirmed' ? 'badge-confirmed' :
-                            booking.bookingStatus === 'Checked-In' ? 'badge-inspected' :
-                            booking.bookingStatus === 'Checked-Out' ? 'badge-clean' : 'badge-cancelled'
-                          }`}>
+            <div className="table-responsive">
+              <table className="luxury-table">
+                <thead>
+                  <tr>
+                    <th>Ref #</th>
+                    <th>Palace Suite</th>
+                    <th>Dates</th>
+                    <th>Total Settled</th>
+                    <th>Status</th>
+                    <th className="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userBookings
+                    .filter((b) => historyFilter === 'all' || b.bookingStatus === historyFilter)
+                    .map((booking) => (
+                      <tr key={booking.id || booking.bookingReference}>
+                        <td className="fw-bold font-serif">{booking.bookingReference || booking.id}</td>
+                        <td>
+                          <div className="fw-semibold text-main">{booking.roomTitle || booking.roomName}</div>
+                          <span className="text-muted small">Suite #{booking.roomNumber}</span>
+                        </td>
+                        <td>
+                          <div className="small">{booking.checkIn} &rarr; {booking.checkOut}</div>
+                          <span className="text-muted small">{booking.nights || 2} nights</span>
+                        </td>
+                        <td className="fw-bold font-serif" style={{ color: 'var(--accent-gold)' }}>
+                          ₹ {(booking.totalAmount || 38997).toLocaleString('en-IN')}
+                        </td>
+                        <td>
+                          <span
+                            className={
+                              booking.bookingStatus === 'Cancelled'
+                                ? 'badge-dirty'
+                                : booking.bookingStatus === 'Checked-In'
+                                ? 'badge-inspected'
+                                : 'badge-clean'
+                            }
+                          >
                             {booking.bookingStatus}
                           </span>
-                        </div>
-                        <div className="text-muted small mb-1">
-                          Booking ID: <strong className="text-warning">{booking.id}</strong> &bull; Room #{booking.roomNumber}
-                        </div>
-                        <div className="text-muted small">
-                          {booking.checkIn} &rarr; {booking.checkOut} ({booking.nights} nights)
-                        </div>
-                      </div>
-
-                      <div className="col-md-3">
-                        <div className="text-muted small">Total Paid</div>
-                        <div className="fs-5 fw-bold text-warning font-serif">${booking.totalAmount}</div>
-                        <div className="text-muted small" style={{ fontSize: '0.75rem' }}>
-                          {booking.paymentMethod}
-                        </div>
-                      </div>
-
-                      <div className="col-md-4 text-md-end">
-                        <div className="d-flex flex-wrap gap-2 justify-content-md-end">
-                          <button
-                            onClick={() => setSelectedBookingForInvoice(booking)}
-                            className="btn btn-sm btn-secondary-custom"
-                            title="Print Folio Invoice"
-                          >
-                            <FileText size={14} /> Folio Invoice
-                          </button>
-
-                          {booking.bookingStatus === 'Confirmed' && (
+                        </td>
+                        <td className="text-end">
+                          <div className="d-inline-flex gap-2">
                             <button
-                              onClick={() => setSelectedBookingForCancel(booking)}
-                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => setSelectedBookingForInvoice(booking)}
+                              className="pill-btn-outline py-1 px-3"
+                              style={{ fontSize: '0.78rem' }}
                             >
-                              Cancel & Refund
+                              Folio
                             </button>
-                          )}
-
-                          {booking.bookingStatus === 'Checked-Out' && (
-                            <button
-                              onClick={() => setSelectedBookingForReview(booking)}
-                              className="btn btn-sm btn-gold-outline"
-                            >
-                              <Star size={14} /> Rate Stay
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                            {booking.bookingStatus !== 'Cancelled' && (
+                              <button
+                                onClick={() => setSelectedBookingForCancel(booking)}
+                                className="pill-btn-outline py-1 px-3 text-danger border-danger"
+                                style={{ fontSize: '0.78rem' }}
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
-        {/* TAB 3: Profile & Preferences */}
+        {/* TAB 3: Resident Profile Preferences */}
         {activeTab === 'profile' && (
-          <div className="row g-4">
-            <div className="col-lg-8">
-              <div className="card-luxury p-4">
-                <h4 className="font-serif fw-bold mb-3 text-warning">Guest Profile Management</h4>
-                <form onSubmit={handleSaveProfile}>
-                  <div className="row g-3 mb-4">
-                    <div className="col-md-6">
-                      <label className="form-label small fw-semibold text-muted">Legal Name</label>
-                      <input
-                        type="text"
-                        className="input-luxury"
-                        value={profileName}
-                        onChange={(e) => setProfileName(e.target.value)}
-                        required
-                      />
-                    </div>
+          <div className="luxury-card p-4" style={{ maxWidth: '780px', margin: '0 auto' }}>
+            <h3 className="font-serif fw-bold text-main fs-4 mb-2">Royal Resident Preferences</h3>
+            <p className="text-secondary small mb-4">
+              Your preferences are automatically shared with your assigned Khansama, wellness director, and housekeeping team before your arrival.
+            </p>
 
-                    <div className="col-md-6">
-                      <label className="form-label small fw-semibold text-muted">Email Address (Registered)</label>
-                      <input
-                        type="email"
-                        className="input-luxury"
-                        value={currentUser?.email}
-                        disabled
-                      />
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label small fw-semibold text-muted">Mobile Telephone</label>
-                      <input
-                        type="tel"
-                        className="input-luxury"
-                        value={profilePhone}
-                        onChange={(e) => setProfilePhone(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="col-md-6">
-                      <label className="form-label small fw-semibold text-muted">Preferred Pillow Architecture</label>
-                      <select
-                        className="input-luxury"
-                        value={pillowPref}
-                        onChange={(e) => setPillowPref(e.target.value)}
-                      >
-                        <option>Hypoallergenic Goose Feather</option>
-                        <option>Memory Foam Ergonomic</option>
-                        <option>Organic Mulberry Silk</option>
-                        <option>Firm Bamboo Charcoal</option>
-                      </select>
-                    </div>
-
-                    <div className="col-12">
-                      <label className="form-label small fw-semibold text-muted">Dietary Preferences & Allergies</label>
-                      <input
-                        type="text"
-                        className="input-luxury"
-                        value={dietPref}
-                        onChange={(e) => setDietPref(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <button type="submit" className="btn btn-gold">
-                    Save VIP Preferences
-                  </button>
-                </form>
-              </div>
-            </div>
-
-            <div className="col-lg-4">
-              <div className="card-luxury p-4">
-                <h5 className="font-serif fw-bold mb-3">Loyalty & Rewards</h5>
-                <div className="p-3 rounded mb-3 text-center" style={{ backgroundColor: 'var(--gold-50)' }}>
-                  <Crown size={32} className="text-warning mb-1" />
-                  <div className="fs-3 font-serif fw-bold text-warning">28,450</div>
-                  <div className="text-muted small text-uppercase fw-bold">HotelPro Privilege Points</div>
+            <form onSubmit={handleSavePreferences}>
+              <div className="row g-3 mb-4">
+                <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted">Contact Phone</label>
+                  <input
+                    type="text"
+                    className="form-control rounded-3"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                  />
                 </div>
-                <ul className="text-muted small list-unstyled d-flex flex-column gap-2 mb-0">
-                  <li className="d-flex align-items-center gap-2">
-                    <CheckCircle size={14} className="text-success" /> Complimentary Champagne on arrival
-                  </li>
-                  <li className="d-flex align-items-center gap-2">
-                    <CheckCircle size={14} className="text-success" /> Guaranteed Late Check-Out (14:00)
-                  </li>
-                  <li className="d-flex align-items-center gap-2">
-                    <CheckCircle size={14} className="text-success" /> Complimentary Suite Upgrade subject to availability
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Cancellation Modal */}
-      {selectedBookingForCancel && (
-        <div className="modal-overlay" onClick={() => setSelectedBookingForCancel(null)}>
-          <div className="modal-content-luxury p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-              <div>
-                <h4 className="font-serif text-danger mb-0">Cancel Reservation & Refund</h4>
-                <p className="text-muted small mb-0">Booking #{selectedBookingForCancel.id}</p>
-              </div>
-              <button className="btn btn-sm btn-link text-muted p-1" onClick={() => setSelectedBookingForCancel(null)}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-3 rounded mb-3 bg-danger-subtle text-danger border border-danger small">
-              <AlertTriangle size={16} className="me-1 inline" />
-              <strong>100% Guaranteed Refund Eligibility:</strong> Since you are cancelling within our generous 48-hour complimentary window, the full balance of <strong>${selectedBookingForCancel.totalAmount}</strong> will be refunded to your original payment method.
-            </div>
-
-            <form onSubmit={handleConfirmCancel}>
-              <div className="mb-3">
-                <label className="form-label small fw-semibold text-muted">Reason for Cancellation</label>
-                <select
-                  className="input-luxury"
-                  value={cancelReason}
-                  onChange={(e) => setCancelReason(e.target.value)}
-                >
-                  <option>Change of travel schedule</option>
-                  <option>Emergency family reason</option>
-                  <option>Rebooking for different suite dates</option>
-                  <option>Other reasons</option>
-                </select>
+                <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted">Dietary Preferences</label>
+                  <input
+                    type="text"
+                    className="form-control rounded-3"
+                    value={dietary}
+                    onChange={(e) => setDietary(e.target.value)}
+                    style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted">Floor & View Preference</label>
+                  <input
+                    type="text"
+                    className="form-control rounded-3"
+                    value={floorPreference}
+                    onChange={(e) => setFloorPreference(e.target.value)}
+                    style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted">Pillow Menu Choice</label>
+                  <input
+                    type="text"
+                    className="form-control rounded-3"
+                    value={pillowType}
+                    onChange={(e) => setPillowType(e.target.value)}
+                    style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                  />
+                </div>
+                <div className="col-12">
+                  <label className="form-label small fw-semibold text-muted">Special Personal Notes for Butler</label>
+                  <textarea
+                    rows={3}
+                    className="form-control rounded-3"
+                    value={specialNotes}
+                    onChange={(e) => setSpecialNotes(e.target.value)}
+                    style={{ backgroundColor: 'var(--bg-surface-subtle)', borderColor: 'var(--border-subtle)' }}
+                  />
+                </div>
               </div>
 
-              <div className="d-flex justify-content-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedBookingForCancel(null)}
-                  className="btn btn-secondary-custom"
-                >
-                  Keep Reservation
-                </button>
-                <button type="submit" className="btn btn-danger">
-                  Confirm Cancellation & Refund
+              <div className="d-flex justify-content-end">
+                <button type="submit" className="pill-btn-dark py-2 px-4">
+                  Save Resident Preferences
                 </button>
               </div>
             </form>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* Invoice Modal */}
+      {selectedBookingForInvoice && (
+        <InvoiceModal
+          booking={selectedBookingForInvoice}
+          onClose={() => setSelectedBookingForInvoice(null)}
+        />
       )}
 
-      {/* Modals */}
-      <InvoiceModal
-        isOpen={Boolean(selectedBookingForInvoice)}
-        onClose={() => setSelectedBookingForInvoice(null)}
-        booking={selectedBookingForInvoice}
-      />
+      {/* Service Request Modal */}
+      {showServiceModal && (
+        <ServiceRequestModal
+          roomNumber={activeStay.roomNumber}
+          guestName={currentUser?.name || 'Aisha Sharma'}
+          onClose={() => setShowServiceModal(false)}
+        />
+      )}
 
-      <ReviewModal
-        isOpen={Boolean(selectedBookingForReview)}
-        onClose={() => setSelectedBookingForReview(null)}
-        booking={selectedBookingForReview}
-      />
-
-      <ServiceRequestModal
-        isOpen={showServiceModal}
-        onClose={() => setShowServiceModal(false)}
-        roomNumber={activeStay?.roomNumber || '202'}
-        guestName={currentUser?.name || 'Lord Johnathan Vance'}
-      />
+      {/* Cancel Confirmation Modal */}
+      {selectedBookingForCancel && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            zIndex: 1060,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          <div className="luxury-card p-4" style={{ maxWidth: '480px', width: '100%' }}>
+            <div className="d-flex align-items-center gap-2 text-danger mb-3">
+              <AlertTriangle size={24} />
+              <h4 className="font-serif fw-bold fs-5 m-0">Confirm Cancellation</h4>
+            </div>
+            <p className="text-secondary small mb-3">
+              Are you sure you wish to cancel reservation <strong>#{selectedBookingForCancel.bookingReference || selectedBookingForCancel.id}</strong> for {selectedBookingForCancel.roomTitle || selectedBookingForCancel.roomName}?
+            </p>
+            <div className="p-3 rounded-3 mb-3" style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+              <span className="fw-semibold text-success small d-block">
+                100% Full Refund Guarantee:
+              </span>
+              <span className="fs-5 fw-bold font-serif text-success">
+                ₹ {(selectedBookingForCancel.totalAmount || 38997).toLocaleString('en-IN')}
+              </span>
+              <span className="text-muted small d-block mt-1">
+                Will be reimbursed to your source payment account within 24 hours.
+              </span>
+            </div>
+            <div className="mb-4">
+              <label className="form-label small text-muted">Cancellation Reason</label>
+              <input
+                type="text"
+                className="form-control rounded-3"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+              />
+            </div>
+            <div className="d-flex justify-content-end gap-2">
+              <button
+                onClick={() => setSelectedBookingForCancel(null)}
+                className="pill-btn-outline py-2 px-3"
+              >
+                Keep Reservation
+              </button>
+              <button
+                onClick={handleConfirmCancel}
+                className="pill-btn-dark py-2 px-3 bg-danger border-danger"
+              >
+                Confirm 100% Refund
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

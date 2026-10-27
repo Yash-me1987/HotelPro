@@ -3,12 +3,13 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import store from './redux/store';
 import './index.css';
 import App from './App.jsx';
 
-// Initialize data-theme on html element
-document.documentElement.setAttribute('data-theme', 'dark');
+// Initialize light luxury theme
+document.documentElement.setAttribute('data-theme', 'light');
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -25,7 +26,7 @@ createRoot(document.getElementById('root')).render(
           pauseOnFocusLoss
           draggable
           pauseOnHover
-          theme="dark"
+          theme="light"
         />
       </BrowserRouter>
     </Provider>
